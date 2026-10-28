@@ -1,0 +1,30 @@
+example_data: true
+id: EX-TS1
+type: executor
+name: 精密电批执行器
+torque_range_nm: [0.10, 1.50]
+accuracy_pct: 3
+mass_kg: 1.2
+fasten_s_base: 1.5
+interfaces: [tier0, tier1]
+process_model: on_mcu
+# 工具外形包络（离线干涉检查用，M4 ③）：沿工具轴、从 TCP（批头尖端）向上的各段圆柱，单位 mm。
+# 与孪生场景尺寸一致（sim/isaac/_common.py SCENE 的 executor / executor_parts / float_head，测试核对）；
+# 是占位外形（demo），换真实执行器时按供应商图纸改
+envelope:
+  source: demo_placeholder
+  segments:
+    - {name: bit, z: [0.0, 60.0], r: 2.5}
+    - {name: float_head, z: [60.0, 80.0], r: 24.0}
+    - {name: body, z: [80.0, 150.0], r: 20.0}
+# 接口（tier0 硬线 + tier1 现场总线，demo 占位）：方向以模块自身为准
+io:
+  source: demo_placeholder
+  signals:
+    - {name: start, dir: in, type: bool, desc: 机械臂已锁定，开始拧（tier0）}
+    - {name: params_id, dir: in, type: int, desc: 参数包编号（tier1）}
+    - {name: done, dir: out, type: bool, desc: 拧完且合格（tier0）}
+    - {name: fault, dir: out, type: bool, desc: 不合格或执行器故障（tier0）}
+    - {name: retry_active, dir: out, type: bool, desc: 正在执行器侧复拧（tier1）}
+    - {name: final_torque, dir: out, type: real, unit: N·m, desc: 终止扭矩（tier1，供追溯）}
+    - {name: bit_vacuum_ok, dir: out, type: bool, desc: 批头吸住螺钉（取钉确认）}

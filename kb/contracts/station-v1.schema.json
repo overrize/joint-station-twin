@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "jsdemo.station/1",
+  "title": "工站设计 v1（上游方案 agent 输出）",
+  "description": "结构校验用。语义校验（型号在库、可达、占地、治具基准、料道覆盖、工步分配、互斥分区、缺失与来源）由 jsdemo.station 完成，见 docs/07-station-contract.md。不知道的值写字符串 \"缺失\"，不要编造。YAML 键名不要用 on / off / yes / no（会被解析成布尔值）。",
+  "type": "object",
+  "required": ["schema", "meta", "units", "frame", "modules", "fixture", "process", "zones", "control", "open_items"],
+  "$defs": {
+    "vec3": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+    "vec2": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+    "pose": {"type": "object", "required": ["xyz"], "properties": {"xyz": {"$ref": "#/$defs/vec3"}, "yaw": {"type": "number"}}},
+    "missing": {"const": "缺失"},
+    "sourced": {"type": "object", "properties": {"source": {"enum": ["drawing", "cad", "measured", "experiment", "customer", "supplier", "estimate", "placeholder"]}}}
+  },
+  "properties": {
+    "schema": {"const": "jsdemo.station/1"},
+    "example_data": {"type": "boolean"},
+    "meta": {
+      "type": "object",
+      "required": ["station", "product", "sop", "generated_by", "status"],
+      "properties": {
+        "station": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$"},
+        "name": {"type": "string"},
+        "product": {"type": "string"},
+        "product_revision": {"type": "string"},
+        "sop": {"type": "string", "description": "本工站做的装配（jsdemo.sop/1 文件路径）"},
+        "generated_by": {"type": "object", "required": ["agent", "version", "at"]},
+        "status": {"enum": ["draft", "signed"]},
+        "signed_by": {"type": ["string", "null"]}
+      }
+    },
+    "units": {"const": {"length": "mm", "angle": "deg", "time": "s"}},
+    "frame": {
+      "type": "object",
+      "required": ["description", "floor_z", "envelope"],
+      "properties": {
+        "description": {"type": "string"},
+        "floor_z": {"type": "number"},
+        "envelope": {"type": "object", "required": ["x", "y"], "properties": {"x": {"$ref": "#/$defs/vec2"}, "y": {"$ref": "#/$defs/vec2"}, "z_max": {"type": "number"}}}
+      }
+    },
+    "targets": {"type": "object", "properties": {"takt_s": {"$ref": "#/$defs/sourced"}, "units_demo": {"type": "integer"}}},
+    "line": {
+      "type": "object",
+      "properties": {
+        "flow": {"enum": ["+x", "-x", "+y", "-y"]},
+        "upstream": {"type": "object", "properties": {"name": {"type": "string"}, "delivers": {"enum": ["kit_tray", "bulk", "operator"]}, "signal": {"type": "string"}}},
+        "downstream": {"type": "object", "properties": {"name": {"type": "string"}, "receives": {"enum": ["pallet", "conveyor", "operator"]}, "signal": {"type": "string"}}}
+      }
+    },
+    "modules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "module", "role"],
+        "properties": {
+          "id": {"type": "string"},
+          "module": {"type": "string", "description": "模块库型号（kb/modules）"},
+          "role": {"enum": ["fastening_arm", "handling_arm", "executor", "float_head", "gripper", "tool_changer", "feeder", "conveyor", "tray", "baseplate", "controller", "interface_box", "gateway", "vision_locator"]},
+          "pose": {"$ref": "#/$defs/pose"},
+          "mount": {"type": "object", "required": ["parent", "at"], "properties": {"parent": {"type": "string"}, "at": {"enum": ["flange"]}}},
+          "tool_of": {"type": "string"},
+          "dock": {"type": "object", "required": ["changer", "slot"]},
+          "riser_mm": {"type": "number"},
+          "home_joints_deg": {"type": "array", "items": {"type": "number"}, "minItems": 6, "maxItems": 6},
+          "park_joints_deg": {"type": "array", "items": {"type": "number"}, "minItems": 6, "maxItems": 6},
+          "lanes": {"type": "array", "items": {"type": "object", "required": ["lane", "screw"]}},
+          "slots": {"type": "array", "items": {"type": "object", "required": ["slot", "xy"]}},
+          "via": {"$ref": "#/$defs/vec3"},
+          "path": {"type": "object"},
+          "stops": {"type": "object"},
+          "count": {"type": "integer"}
+        }
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "required": ["pose"],
+      "properties": {
+        "use": {"type": "string", "description": "库里现成的治具；与 suggestion 二选一"},
+        "pose": {"$ref": "#/$defs/pose"},
+        "product_mounting": {"const": "from_sop"},
+        "suggestion": {
+          "type": ["object", "null"],
+          "properties": {
+            "id": {"type": "string"},
+            "type": {"enum": ["nest", "pins_and_face", "vee_block", "vacuum", "缺失"]},
+            "locating": {"type": "string"},
+            "clamping": {"type": "string"},
+            "datums": {"type": "array", "minItems": 3, "items": {"type": "object", "required": ["id", "xyz"]}},
+            "material": {"type": "string"},
+            "notes": {"type": "string"}
+          }
+        }
+      }
+    },
+    "handling": {
+      "type": "object",
+      "properties": {
+        "tray_slots": {"type": "array", "items": {"type": "object", "required": ["slot", "part"]}},
+        "grasp": {"oneOf": [{"const": "auto"}, {"type": "array", "items": {"type": "object", "required": ["part", "tool", "mode"]}}]},
+        "unload": {"type": "object"}
+      }
+    },
+    "process": {
+      "type": "object",
+      "required": ["allocation"],
+      "properties": {
+        "allocation": {"type": "array", "items": {"type": "object", "required": ["sop_step", "resource"], "properties": {"tool": {"type": "string"}}}},
+        "parallel": {"type": "boolean"},
+        "screw_feed": {"enum": ["nest_pick", "blow_feed"]}
+      }
+    },
+    "zones": {"type": "array", "items": {"type": "object", "required": ["id", "box", "exclusive"]}},
+    "control": {
+      "type": "object",
+      "required": ["interlock"],
+      "properties": {"interlock": {"const": "handshake"}, "error_policy": {"const": "from_sop"}, "mes_points": {"type": "array"}, "andon": {"type": "object"}}
+    },
+    "open_items": {"type": "array", "items": {"type": "object", "required": ["id", "text"]}}
+  }
+}

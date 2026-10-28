@@ -1,0 +1,5 @@
+example_data: true
+id: SC-1
+type: controller
+name: 工站控制器
+plc: {language: IEC 61131-3 ST, digital_in: 32, digital_out: 32, int_registers: 64, fieldbus: [modbus_tcp], source: demo_placeholder}

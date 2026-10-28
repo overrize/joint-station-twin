@@ -1,0 +1,5 @@
+example_data: true
+id: IB-T0
+type: interface_box
+name: 接口盒
+tiers: [0, 1]

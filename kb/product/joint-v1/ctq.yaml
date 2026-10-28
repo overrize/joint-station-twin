@@ -1,0 +1,5 @@
+example_data: true
+ctq:
+  - {id: CTQ-1, name: 端盖密封, groups: [E]}
+  - {id: CTQ-2, name: 编码器同心, groups: [C]}
+  - {id: CTQ-3, name: 驱动板接地, points: [D1]}

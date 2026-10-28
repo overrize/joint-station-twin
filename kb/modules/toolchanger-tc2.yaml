@@ -1,0 +1,13 @@
+example_data: true
+id: TC-2
+type: tool_changer
+name: 两工位快换架（放件臂用）
+slots: 2
+change_s: 1.5            # 一次放下 / 接上的锁紧时间（demo 占位）
+dock_z_mm: 150.0         # 工具停放时，工具法兰面（与机械臂法兰对接的面）的高度，基座系。试过 300：立柱变高，大臂撞托轨更多；保持 150，靠拉开两个工位避让
+io:
+  source: demo_placeholder
+  signals:
+    - {name: lock, dir: in, type: bool, desc: 锁紧（接上工具）}
+    - {name: locked, dir: out, type: bool, desc: 已锁紧}
+    - {name: tool_present, dir: out, type: bool, per_slot: true, desc: 工位上有工具}

@@ -1,0 +1,30 @@
+id: DEC-ENV-001
+date: 2026-10-23
+decision: >-
+  固定演示用的 Isaac 运行环境，演示前不再升级：
+  Isaac Sim 6.2.0 Windows 独立包，装在 F:\isaacsim（VERSION 文件内容 6.2.0-rc.14+release.52805.02189a84.gl，
+  安装包 isaac-sim-standalone-6.2.0-windows-x86_64.zip 的 MD5 86dabd127e9e8c225c239b41a8e3909b 与官网一致）；
+  NVIDIA 驱动 610.88；显卡 RTX 5090 D v2 24GB；Windows 11 专业版 build 26200；
+  Isaac 脚本用 F:\isaacsim\python.bat（内置 Python 3.12.14，已装 pytest 9.1.1、PyYAML 6.0.3）；
+  jsdemo 与 pytest 用系统 Python C:\Python314（3.14.0）；
+  资产走国内镜像：用户环境变量 ISAACSIM_ASSET_REGION_PROFILE=china，
+  NO_PROXY=assets.simready.cn,.simready.cn,.aliyuncs.com,localhost,127.0.0.1。
+rejected: >-
+  按文档重装到 C:\isaac：本机已有可用安装，F:\isaacsim 同样是短路径，用户决定 Isaac 只放在 F 盘；
+  Isaac Sim 7.0.0 Alpha：预览版，docs/04 明确不用；
+  Docker / WSL2：Isaac 容器只支持 Linux，WSL2 下 Vulkan 初始化失败；
+  默认海外资产源（S3）：经本机代理实测约 0.65 MB/s，加载场景时主线程卡住、窗口未响应；国内镜像实测约 5.9 MB/s。
+assumptions: >-
+  驱动 610.88 高于要求的 595.97；官方未单列 5090 D 型号，以实测为准（2026-10-23 官方 getting_started 示例
+  带窗口运行返回码 0，视口截图渲染正常）；VS Community 2022 17.14 装在 F:\vs22，含 MSVC v143 工具集
+  14.38 / 14.44；国内镜像 assets.simready.cn 提供与 6.2 一致的资产；VERSION 中的 rc.14 是官方 6.2.0 正式
+  下载包自带的构建标识，不是另装的预览版。
+invalidation: >-
+  升级或回退显卡驱动、Isaac Sim 版本或 Windows 大版本；更换显卡；国内镜像不可用或资产与 6.2 不一致；
+  出现 WinError 126、启动报错、渲染异常；把 Isaac 挪出 F:\isaacsim。
+trigger: 偏离默认
+confirmed_by: 用户（2026-10-23 确认：沿用当前已稳定运行的环境，驱动与版本不做改动）
+links:
+  - docs/03-plan.md#M0.2
+  - docs/04-isaac-windows.md
+status: confirmed

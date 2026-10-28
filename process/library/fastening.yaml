@@ -1,0 +1,16 @@
+# 示例数据，不构成工艺推荐。
+example_data: true
+screws:
+  M2x5-machine: {d_mm: 2.0, pitch_mm: 0.4, kind: machine}
+  M2x6-tapping: {d_mm: 2.0, pitch_mm: 0.8, kind: tapping}
+  M3x8-machine: {d_mm: 3.0, pitch_mm: 0.5, kind: machine}
+entries:
+  - {id: W-AL-M3-02, material: AL6061, screw: M3x8-machine, window_nm: [0.90, 1.10], target_nm: 1.00, stages: [寻牙, 快拧, 终拧], source: experiment, confidence: high}
+  - {id: W-AL-M2-03, material: AL6061, screw: M2x5-machine, window_nm: [0.32, 0.38], target_nm: 0.35, stages: [寻牙, 终拧], source: experiment, confidence: high}
+  - {id: L-PA66-M2T-H15, material: PA66, screw: M2x6-tapping, hole_d_mm: 1.5, window_nm: [0.17, 0.23], target_nm: 0.20, stages: [寻牙, 成形, 贴合, 终拧], source: experiment, confidence: high}
+  - {id: L-PA66-M2T-H17, material: PA66, screw: M2x6-tapping, hole_d_mm: 1.7, window_nm: [0.13, 0.19], target_nm: 0.16, stages: [寻牙, 成形, 贴合, 终拧], source: experiment, confidence: high}
+  - {id: L-PC-M2T-H15, material: PC, screw: M2x6-tapping, hole_d_mm: 1.5, window_nm: [0.21, 0.27], target_nm: 0.24, stages: [寻牙, 成形, 贴合, 终拧], source: experiment, confidence: high}
+  - {id: L-PC-M2T-H17, material: PC, screw: M2x6-tapping, hole_d_mm: 1.7, window_nm: [0.17, 0.23], target_nm: 0.20, stages: [寻牙, 成形, 贴合, 终拧], source: experiment, confidence: high}
+# 工艺模型的外推边界：孔径超出库内样本范围多于这个值就拒绝给数
+model:
+  max_extrapolation_mm: 0.05

@@ -1,0 +1,5 @@
+example_data: true
+id: FH-2
+type: float_head
+name: 浮动批头座
+capture_mm: 1.5

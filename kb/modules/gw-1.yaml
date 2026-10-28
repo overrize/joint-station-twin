@@ -1,0 +1,4 @@
+example_data: true
+id: GW-1
+type: gateway
+name: 数据网关

@@ -1,0 +1,146 @@
+# 工站 SOP 示例：把现有 joint-v1 产品数据按 SOP v1 标准（docs/06-sop-contract.md）重写。
+# 由人工转写，不是上游 agent 的真实输出；外形尺寸沿用 M3.4 的占位数。
+# tests/test_sop.py 检查：转换结果与 kb/product/joint-v1 一致。
+schema: jsdemo.sop/1
+example_data: true
+
+meta:
+  product: joint-v1
+  name: 一体化关节模组
+  revision: A
+  station: JS-01
+  generated_by: {agent: 人工转写（M3.5a 示例）, version: "1", at: "2026-10-24"}
+  status: draft            # draft | signed；signed 时 signed_by 必填
+  signed_by: null
+
+units: {length: mm, angle: deg, time: s}
+
+frame:
+  description: 产品坐标系 PRD：原点在壳体底面中心，z 轴向上；拧紧方向为 -z
+  mounting_in_fixture: {fixture: FX-JOINT-V1, xyz: [0.0, 0.0, 0.0], rpy: [0.0, 0.0, 0.0], source: example}
+
+takt_target_s: {value: 45, source: example}
+
+parts:
+  - id: HSG-01
+    name: 壳体
+    material: AL6061
+    pose: {xyz: [0.0, 0.0, 0.0], rpy: [0.0, 0.0, 0.0]}
+    geometry:
+      source: placeholder
+      shapes:
+        - {type: cylinder, r: 45.0, z: [0.0, 8.0]}
+        - {type: ring, r_in: 34.0, r_out: 45.0, z: [8.0, 34.0]}
+  - id: ENC-01
+    name: 编码器
+    material: AL6061
+    note: 编码器座为铝合金
+    pose: {xyz: [0.0, 0.0, 0.0], rpy: [0.0, 0.0, 0.0]}
+    geometry:
+      source: placeholder
+      shapes:
+        - {type: cylinder, r: 19.0, z: [8.0, 18.0]}
+  - id: BRK-01
+    name: 驱动板支架
+    material: PA66
+    pose: {xyz: [0.0, 0.0, 0.0], rpy: [0.0, 0.0, 0.0]}
+    geometry:
+      source: placeholder
+      shapes:
+        - {type: ring, r_in: 19.5, r_out: 33.0, z: [8.0, 24.4]}
+  - id: PCB-01
+    name: 驱动板
+    material: FR4
+    pose: {xyz: [0.0, 0.0, 0.0], rpy: [0.0, 0.0, 0.0]}
+    geometry:
+      source: placeholder
+      shapes:
+        - {type: ring, r_in: 19.5, r_out: 33.0, z: [24.4, 26.0]}
+    # 板上元件：随驱动板一起放入；既是外形，也是可制造性检查里的障碍物
+    components:
+      - {id: C12, name: 电容, shape: {type: cylinder, r: 0.5, xy: [-18.1, -14.1], z: [26.0, 34.0]}, source: example,
+         note: 产品数据只给了中心与顶高，半径为占位}
+      - {id: J3, name: 连接器, shape: {type: cylinder, r: 0.5, xy: [0.0, 24.0], z: [26.0, 31.0]}, source: example,
+         note: 产品数据只给了中心与顶高，半径为占位}
+  - id: CAP-01
+    name: 端盖
+    material: AL6061
+    pose: {xyz: [0.0, 0.0, 0.0], rpy: [0.0, 0.0, 0.0]}
+    geometry:
+      source: placeholder
+      shapes:
+        - {type: cylinder, r: 45.0, z: [34.0, 40.0]}
+
+screws:
+  - {id: M2x5-machine, bom_id: SCR-M2M, name: M2x5 机螺钉}
+  - {id: M2x6-tapping, bom_id: SCR-M2T, name: M2x6 自攻螺钉}
+  - {id: M3x8-machine, bom_id: SCR-M3M, name: M3x8 机螺钉}
+
+ctq:
+  - {id: CTQ-1, name: 端盖密封}
+  - {id: CTQ-2, name: 编码器同心}
+  - {id: CTQ-3, name: 驱动板接地}
+
+# 工步按执行顺序排列。放件工步的执行者与时长在现有产品数据里没有，如实写「缺失」
+steps:
+  - {id: S010, type: place, part: HSG-01, actor: 缺失, duration_s: 缺失}
+  - {id: S020, type: place, part: ENC-01, actor: 缺失, duration_s: 缺失}
+  - id: S030
+    type: fasten
+    group: C
+    name: 编码器
+    fastens: ENC-01
+    into: HSG-01
+    screw: M2x5-machine
+    hole: {material: AL6061, spec: M2-thread, depth_mm: 4.0, source: example}
+    approach: [0.0, 0.0, -1.0]
+    actor: robot
+    on_ng: {action: continue, retry: {max: 1, on_modes: [float], decision: DEC-NG-001}}
+    ctq: [CTQ-2]
+    points:
+      - {id: C1, xyz: [0.0, 15.0, 18.0]}
+      - {id: C2, xyz: [-12.99, -7.5, 18.0]}
+      - {id: C3, xyz: [12.99, -7.5, 18.0]}
+  - {id: S040, type: place, part: BRK-01, actor: 缺失, duration_s: 缺失}
+  - {id: S050, type: place, part: PCB-01, actor: 缺失, duration_s: 缺失}
+  - id: S060
+    type: fasten
+    group: D
+    name: 驱动板
+    fastens: PCB-01
+    into: BRK-01
+    screw: M2x6-tapping
+    hole: {material: PA66, d_mm: 1.6, depth_mm: 5.0, source: example}
+    approach: [0.0, 0.0, -1.0]
+    actor: robot
+    on_ng: {action: stop_unit}
+    points:
+      - {id: D1, xyz: [20.0, 15.0, 26.0], ctq: [CTQ-3]}
+      - {id: D2, xyz: [-20.0, 15.0, 26.0]}
+      - {id: D3, xyz: [-20.0, -15.0, 26.0]}
+      - {id: D4, xyz: [20.0, -15.0, 26.0]}
+  - {id: S070, type: place, part: CAP-01, actor: 缺失, duration_s: 缺失}
+  - id: S080
+    type: fasten
+    group: E
+    name: 端盖
+    fastens: CAP-01
+    into: HSG-01
+    screw: M3x8-machine
+    hole: {material: AL6061, spec: M3-thread, depth_mm: 6.0, source: example}
+    approach: [0.0, 0.0, -1.0]
+    actor: robot
+    on_ng: {action: continue, retry: {max: 1, on_modes: [float], decision: DEC-NG-001}}
+    ctq: [CTQ-1]
+    points:
+      - {id: E1, xyz: [38.0, 0.0, 40.0]}
+      - {id: E2, xyz: [19.0, 32.91, 40.0]}
+      - {id: E3, xyz: [-19.0, 32.91, 40.0]}
+      - {id: E4, xyz: [-38.0, 0.0, 40.0]}
+      - {id: E5, xyz: [-19.0, -32.91, 40.0]}
+      - {id: E6, xyz: [19.0, -32.91, 40.0]}
+
+# 上游 agent 自己知道没解决的问题，必须列在这里，不能省略
+open_items:
+  - {id: OI-1, about: steps.place, text: 放件工步的执行者与时长缺失（例如谁在拧 E 组前放端盖）}
+  - {id: OI-2, about: parts.geometry, text: 零件外形为占位尺寸，非图纸}

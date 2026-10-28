@@ -1,0 +1,7 @@
+# Golden 约束：agent 不得修改本文件，也不得为了让测试通过而绕开它。改动必须由人签字。
+golden: true
+arm_program_forbidden_tokens: [torque, force_mode, set_tcp_force, "N·m", "Nm", screw, fasten]
+process_window_sources: [library, model]
+unknown_window_policy: stop_and_ask
+all_points_in_fixture_frame: true
+executor_owns_fastening: true

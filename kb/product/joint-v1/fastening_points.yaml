@@ -1,0 +1,27 @@
+# 示例数据。所有坐标都在治具坐标系 FX-JOINT-V1 下，单位 mm。
+# 现场只标定治具坐标系相对机械臂的变换，不逐点示教。
+example_data: true
+frame: FX-JOINT-V1
+units: mm
+groups:
+  - {id: C, name: 编码器, screw: M2x5-machine, material: AL6061, hole: M2-thread, depth_mm: 4.0, part: ENC-01}
+  - {id: D, name: 驱动板, screw: M2x6-tapping, material: PA66, hole_d_mm: 1.6, depth_mm: 5.0, part: BRK-01}
+  - {id: E, name: 端盖, screw: M3x8-machine, material: AL6061, hole: M3-thread, depth_mm: 6.0, part: CAP-01}
+points:
+  - {id: C1, group: C, xyz: [0.0, 15.0, 18.0]}
+  - {id: C2, group: C, xyz: [-12.99, -7.5, 18.0]}
+  - {id: C3, group: C, xyz: [12.99, -7.5, 18.0]}
+  - {id: D1, group: D, xyz: [20.0, 15.0, 26.0]}
+  - {id: D2, group: D, xyz: [-20.0, 15.0, 26.0]}
+  - {id: D3, group: D, xyz: [-20.0, -15.0, 26.0]}
+  - {id: D4, group: D, xyz: [20.0, -15.0, 26.0]}
+  - {id: E1, group: E, xyz: [38.0, 0.0, 40.0]}
+  - {id: E2, group: E, xyz: [19.0, 32.91, 40.0]}
+  - {id: E3, group: E, xyz: [-19.0, 32.91, 40.0]}
+  - {id: E4, group: E, xyz: [-38.0, 0.0, 40.0]}
+  - {id: E5, group: E, xyz: [-19.0, -32.91, 40.0]}
+  - {id: E6, group: E, xyz: [19.0, -32.91, 40.0]}
+# 紧固点附近的元件，用于可制造性检查（批头可达空间）
+obstacles:
+  - {id: C12, name: 电容, xy: [-18.1, -14.1], z_top: 34.0}
+  - {id: J3, name: 连接器, xy: [0.0, 24.0], z_top: 31.0}

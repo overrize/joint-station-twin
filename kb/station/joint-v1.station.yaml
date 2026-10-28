@@ -1,0 +1,102 @@
+# 工站设计（上游方案 agent 输出，jsdemo.station/1）示例：关节模组紧固工站 JS-01
+# 由现有 demo 工站反写而成（布局、治具、分工与当前孪生一致），用来说明标准每个字段怎么填。
+# 标准说明：docs/07-station-contract.md；格式定义：kb/contracts/station-v1.schema.json；校验：python -m jsdemo.station <文件>
+schema: jsdemo.station/1
+example_data: true
+
+meta:
+  station: JS-01
+  name: 关节模组紧固工站
+  product: joint-v1
+  product_revision: A
+  sop: kb/sop/joint-v1.sop.yaml          # 本工站做的装配：零件、工步、紧固点都以这份 SOP 为准，这里不重复
+  generated_by: {agent: example-planner, version: "0.1", at: "2026-10-26"}
+  status: draft
+  signed_by: null
+
+units: {length: mm, angle: deg, time: s}
+
+# 工站坐标系：所有位姿都写在这个坐标系里。原点、轴向由 agent 定义并说清楚
+frame:
+  description: 原点在拧紧臂 R1 基座中心（垫高块顶面），z 向上，x 指向治具，输送方向为 +y
+  floor_z: -60                           # 桌面（安装面）高度
+  envelope: {x: [-400, 1000], y: [-1055, 790], z_max: 1800}   # 工站可用空间（含上下游接口段）
+
+targets:
+  takt_s: {value: 45, source: customer}
+  units_demo: 3                          # 演示时连续做几台
+
+# 产线上下文：物料怎么进、怎么出，接口由上下游工站提供
+line:
+  flow: +y
+  upstream: {name: 配套拣选工站, delivers: kit_tray, signal: tray_ready, source: customer}
+  downstream: {name: 检测 / 下线工站, receives: pallet, signal: unit_out, source: customer}
+
+# 模块清单与布局：module 必须是模块库里的型号；每个实例给位姿（工站坐标系）或安装关系
+# 工具链直接按这里的数值生成程序与孪生（python -m jsdemo run --station <本文件>），代码里不再写布局常量。
+# 下面注释里的「孪生实测」是 demo 调布局时留下的依据：
+# - R1 停靠位肩部转 +90（朝供钉器一侧），让出治具上方给 R2；
+# - R2 原位 [90, ...]：手臂伸向 -y（料盘一侧桌边上方），拧紧臂不去那里。试过 -90（+y，挡住供钉器）与 45（横伸过治具上方），两臂并行时都会相撞；
+# - 料盘停止位 y -430：在 -330 时取最靠治具的穴，R2 小臂与去供钉器的 R1 小臂相撞；
+# - 快换两工位拉开 260 mm（x 640 / 900）：接一个工具时大臂不扫过另一个工位的托轨；
+# - 快换中间点 via：直线去快换架会经过 R2 基座正上方（逆解失败）。
+modules:
+  - {id: R1, module: ARM-UR5E, role: fastening_arm, pose: {xyz: [0, 0, 0], yaw: 0}, riser_mm: 60,
+     home_joints_deg: [0, -90, 90, -90, -90, 0], park_joints_deg: [90, -90, 90, -90, -90, 0]}
+  - {id: EX1, module: EX-TS1, role: executor, mount: {parent: R1, at: flange}}
+  - {id: FH1, module: FH-2, role: float_head, mount: {parent: R1, at: flange}}
+  - {id: R2, module: ARM-UR5E, role: handling_arm, pose: {xyz: [820, -200, 0], yaw: 180}, riser_mm: 60,
+     home_joints_deg: [90, -90, 90, -90, -90, 0]}
+  - {id: G1, module: GR-2F85, role: gripper, tool_of: R2, dock: {changer: TC1, slot: 1}}
+  - {id: G2, module: GR-VG1, role: gripper, tool_of: R2, dock: {changer: TC1, slot: 2}}
+  - {id: TC1, module: TC-2, role: tool_changer, slots: [{slot: 1, xy: [640, -520]}, {slot: 2, xy: [900, -520]}],
+     via: [640, -360, 260]}              # 去快换架前的中间点（直线会过 R2 基座正上方）
+  - {id: FD1, module: FD-3L, role: feeder, pose: {xyz: [650, 200, -30], yaw: 0},
+     lanes: [{lane: 1, screw: M2x5-machine}, {lane: 2, screw: M2x6-tapping}, {lane: 3, screw: M3x8-machine}]}
+  - {id: CV1, module: CV-600, role: conveyor, path: {x: 450, y: [-1000, 760], width: 240, top_z: -40},
+     stops: {tray_station: [450, -990, -28], tray_prestop: [450, -790, -28], tray_stop: [450, -430, -28],
+             out_stop: [450, 235, -28], buffer: [[450, 645, -28], [450, 505, -28], [450, 365, -28]]}}
+  - {id: TR1, module: TR-KT6, role: tray, count: 2}   # 两个料盘轮换：一个在放件位，一个在排队位
+  - {id: BP1, module: BP-1, role: baseplate, pose: {xyz: [450, 0, -55], yaw: 0}}
+  - {id: SC1, module: SC-1, role: controller, pose: {xyz: [-280, 260, 40], yaw: 0}}
+  - {id: IB1, module: IB-T0, role: interface_box, pose: {xyz: [-280, 100, 0], yaw: 0}}
+  - {id: GW1, module: GW-1, role: gateway, pose: {xyz: [-280, -260, -30], yaw: 0}}
+
+# 治具：用库里现成的（use），或者给出新设计建议（suggestion，结构见标准第 5 节）
+fixture:
+  use: FX-JOINT-V1
+  pose: {xyz: [450, 0, 0], yaw: 0}      # 治具坐标系原点（治具顶面中心）在工站坐标系里的位姿
+  product_mounting: from_sop             # 产品在治具上的装夹位姿取 SOP 的 frame.mounting_in_fixture
+  suggestion: null
+
+# 物料：料盘穴位、供钉器料道（料道在 modules.FD1.lanes）
+handling:
+  tray_slots: [{slot: 1, part: HSG-01}, {slot: 2, part: ENC-01}, {slot: 3, part: BRK-01}, {slot: 4, part: PCB-01}, {slot: 5, part: CAP-01}]
+  grasp: auto                            # auto：由工具链按零件外形选末端与夹法；也可逐件指定 {part, tool, mode}
+  unload: {resource: R2, tool: G2, to: out_stop}
+
+# 分工：SOP 的每个工步由哪个资源、用什么工具做
+process:
+  allocation:
+    - {sop_step: S010, resource: R2, tool: auto}
+    - {sop_step: S020, resource: R2, tool: auto}
+    - {sop_step: S030, resource: R1, tool: EX1}
+    - {sop_step: S040, resource: R2, tool: auto}
+    - {sop_step: S050, resource: R2, tool: auto}
+    - {sop_step: S060, resource: R1, tool: EX1}
+    - {sop_step: S070, resource: R2, tool: auto}
+    - {sop_step: S080, resource: R1, tool: EX1}
+  parallel: true                         # 两臂可同时动作（受 zones 约束）
+  screw_feed: nest_pick                  # 每颗螺钉去供钉器出钉位取
+
+# 安全分区：exclusive 里的资源同一时刻只能有一个进入该区域
+zones:
+  - {id: Z_FIX, description: 治具上方, box: {center: [450, 0, 200], size: [320, 320, 400]}, exclusive: [R1, R2]}
+
+control:
+  interlock: handshake                   # 拧紧臂让出 Z_FIX → zone_free；放件臂放完 → placed_count；整件拧完 → unit_done
+  error_policy: from_sop                 # 每组不合格处置与复拧取 SOP 的 on_ng
+  mes_points: [unit_start, part_placed, fasten_result, issue_opened, unit_unloaded, unit_delivered, feeder_state]
+  andon: {ok: green, retry: yellow, ng: red}
+
+open_items: []

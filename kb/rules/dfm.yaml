@@ -1,0 +1,7 @@
+# 可制造性规则：只放有明确几何判据、能自动判定的规则
+example_data: true
+rules:
+  - {id: DFM-01, name: 批头可达间隙, check: bit_clearance, min_mm: 3.0, note: 批头外径半径加浮动行程}
+  - {id: DFM-02, name: 机螺钉旋合深度, check: thread_engagement, min_ratio_of_d: 1.5}
+  - {id: DFM-03, name: 自攻螺钉拧入深度, check: tapping_depth, min_ratio_of_d: 2.0}
+  - {id: DFM-04, name: 竖直接近, check: approach_vertical}

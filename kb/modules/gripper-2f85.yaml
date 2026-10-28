@@ -1,0 +1,38 @@
+example_data: true
+id: GR-2F85
+type: gripper
+name: 两指平行夹爪 Robotiq 2F-85（放件臂用）
+principle: parallel_2f
+payload_kg: 5.0
+cycle_s: 0.5            # 开合一次的时间（demo 占位）
+interfaces: [tier0]
+isaac_asset: /Isaac/Robots/Robotiq/2F-85/Robotiq_2F_85_edit.usd   # 本机 6.2 核实
+local_asset: robotiq_2f85.usd   # sim/isaac/fetch_assets.py 合成到 build/assets/（运行中不再联网拉 payload）
+visual_asset: robotiq_2f85_visual.usd   # sim/isaac/record_gripper.py：去掉物理的显示版，配 robotiq_2f85_fingers.json 姿态表
+finger_table: robotiq_2f85_fingers.json
+kinematic: true   # 用户 2026-10-25：运动学夹爪（工站场景里物理合拢与快换做不到，见 docs/isaac-api-notes.md），接触按几何判定
+articulation: Robotiq_2F_85      # 资产根 prim（显示版里已去掉 articulation，只作为连杆的父节点）
+drive_joint: finger_joint        # 唯一主动关节，0°=全开，45°≈全合；其余 5 个关节 mimic
+angle_deg: [0.0, 45.0]
+# 本机实测（2026-10-25，Isaac 6.2 资产网格顶点，指尖最远 15 mm 段）：夹爪根坐标系 +z 为手指伸出方向、y 为开合方向
+geometry_source: 本机实测
+open_table:   # [角度 deg, 两指内侧间距 mm, 两指外侧跨度 mm, 指尖离夹爪根 mm]
+  - [0.0, 87.10, 99.87, 148.4]
+  - [10.0, 70.88, 83.66, 154.2]
+  - [20.0, 52.91, 65.68, 158.5]
+  - [30.0, 33.71, 46.49, 161.2]
+  - [40.0, 13.88, 26.65, 162.2]
+  - [45.0, 3.91, 16.69, 162.0]
+finger_mm: {thickness: 6.4, width: 22.0, length: 40.0}   # 单指在开合方向的厚度、横向宽度、指尖以上算作手指的长度
+body_mm: {radius: 65.0, from_tip: 40.0}   # 指尖往上 40 mm 起是外指节与本体，包络取半径 65 的圆柱（保守）
+grip_rules:   # 抓取规划（jsdemo.handling，demo 规则）
+  clearance_mm: 2.0        # 张开时比零件外径（或合拢时比内孔）多留的间隙
+  min_engage_mm: 5.0       # 手指与零件的最小接触高度
+  tip_above_bottom_mm: 1.0 # 指尖离零件底面
+io:
+  source: demo_placeholder
+  signals:
+    - {name: angle_cmd, dir: in, type: real, unit: deg, desc: 手指目标角（0 全开，45 全合）}
+    - {name: go, dir: in, type: bool, desc: 执行开合}
+    - {name: angle_act, dir: out, type: real, unit: deg, desc: 手指实际角}
+    - {name: contact, dir: out, type: bool, desc: 夹到零件（堵转）}

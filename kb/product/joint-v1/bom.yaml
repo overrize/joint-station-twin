@@ -1,0 +1,16 @@
+# 示例数据：一体化关节模组。用于演示，不对应真实产品。
+example_data: true
+product: joint-v1
+name: 一体化关节模组
+parts:
+  - {id: HSG-01, name: 壳体, material: AL6061}
+  - {id: ENC-01, name: 编码器, material: AL6061, note: 编码器座为铝合金}
+  - {id: BRK-01, name: 驱动板支架, material: PA66}
+  - {id: PCB-01, name: 驱动板, material: FR4}
+  - {id: CAP-01, name: 端盖, material: AL6061}
+  - {id: SCR-M2M, name: M2x5 机螺钉, qty: 3}
+  - {id: SCR-M2T, name: M2x6 自攻螺钉, qty: 4}
+  - {id: SCR-M3M, name: M3x8 机螺钉, qty: 6}
+# 装配顺序决定紧固顺序：端盖会盖住编码器和驱动板，必须最后装
+assembly_order: [C, D, E]
+target_takt_s: 45

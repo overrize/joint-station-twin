@@ -1,0 +1,16 @@
+example_data: true
+id: CV-600
+type: conveyor
+name: 输送段 600
+length_mm: 600
+load_unload_s: 6.0
+io:
+  source: demo_placeholder
+  signals:
+    - {name: tray_advance, dir: in, type: bool, desc: 排队位的料盘送到放件位}
+    - {name: tray_return, dir: in, type: bool, desc: 放件位的空料盘下沉到回流线}
+    - {name: out_advance, dir: in, type: bool, desc: 出件位托盘送往下游缓存}
+    - {name: tray_at_stop, dir: out, type: bool, desc: 料盘在放件位}
+    - {name: tray_at_prestop, dir: out, type: bool, desc: 料盘在排队位}
+    - {name: pallet_at_out, dir: out, type: bool, desc: 空托盘在出件位}
+    - {name: buffer_full, dir: out, type: bool, desc: 下游缓存满}

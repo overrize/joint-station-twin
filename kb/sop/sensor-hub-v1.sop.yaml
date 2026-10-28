@@ -1,0 +1,147 @@
+# 工站 SOP 示例二：结构与 joint-v1 不同的虚构产品，用来验证「换产品也能装、能跑」（M3.5b）。
+# 全部数据为示例（example_data），不对应真实产品；不改工艺库与模块库，螺钉与材料组合都取工艺库里已有的。
+# 与 joint-v1 的差别：长方体外形为主、多体零件（4 根支柱）、产品绕 z 转 90° 装夹、PC 塑料自攻、装配顺序不同。
+schema: jsdemo.sop/1
+example_data: true
+
+meta:
+  product: sensor-hub-v1
+  name: 传感器集线模组
+  revision: A
+  station: JS-01
+  generated_by: {agent: 人工编写（M3.5b 示例二）, version: "1", at: "2026-10-24"}
+  status: draft
+  signed_by: null
+
+units: {length: mm, angle: deg, time: s}
+
+frame:
+  description: 产品坐标系 PRD：原点在底座底面中心，x 沿长边，z 轴向上；拧紧方向为 -z
+  # 借用 joint-v1 的治具（模块库里没有本产品的治具），并转 90° 放置；校验会报 B-FIXTURE
+  mounting_in_fixture: {fixture: FX-JOINT-V1, xyz: [0.0, 0.0, 0.0], rpy: [0.0, 0.0, 90.0], source: example}
+
+takt_target_s: {value: 40, source: example}
+
+parts:
+  - id: BASE-01
+    name: 底座
+    material: AL6061
+    pose: {xyz: [0.0, 0.0, 0.0], rpy: [0.0, 0.0, 0.0]}
+    geometry:
+      source: example
+      shapes:
+        - {type: box, center: [0.0, 0.0, 5.0], size: [120.0, 80.0, 10.0]}
+  - id: SPC-01
+    name: 支柱（4 根）
+    material: AL6061
+    pose: {xyz: [0.0, 0.0, 0.0], rpy: [0.0, 0.0, 0.0]}
+    geometry:
+      source: example
+      shapes:
+        - {type: cylinder, r: 3.5, xy: [52.0, 32.0], z: [10.0, 30.0]}
+        - {type: cylinder, r: 3.5, xy: [-52.0, 32.0], z: [10.0, 30.0]}
+        - {type: cylinder, r: 3.5, xy: [-52.0, -32.0], z: [10.0, 30.0]}
+        - {type: cylinder, r: 3.5, xy: [52.0, -32.0], z: [10.0, 30.0]}
+  - id: PCB-02
+    name: 主板
+    material: FR4
+    pose: {xyz: [0.0, 0.0, 0.0], rpy: [0.0, 0.0, 0.0]}
+    geometry:
+      source: example
+      shapes:
+        - {type: box, center: [0.0, -2.0, 10.8], size: [90.0, 56.0, 1.6]}
+    components:
+      - {id: J1, name: 连接器, shape: {type: box, center: [25.0, -2.0, 14.1], size: [10.0, 6.0, 5.0]}, source: example}
+      - {id: U2, name: 处理器, shape: {type: box, center: [-15.0, 2.0, 12.6], size: [14.0, 14.0, 2.0]}, source: example}
+      - {id: C3, name: 电容, shape: {type: cylinder, r: 2.0, xy: [-30.0, -14.0], z: [11.6, 19.0]}, source: example}
+  - id: HLD-01
+    name: 线缆座
+    material: PC
+    pose: {xyz: [0.0, 33.0, 0.0], rpy: [0.0, 0.0, 0.0]}
+    geometry:
+      source: example
+      shapes:
+        - {type: box, center: [0.0, 0.0, 14.0], size: [30.0, 8.0, 8.0]}
+  - id: CLP-01
+    name: 线缆压板
+    material: PC
+    pose: {xyz: [0.0, 33.0, 0.0], rpy: [0.0, 0.0, 0.0]}
+    geometry:
+      source: example
+      shapes:
+        - {type: box, center: [0.0, 0.0, 19.0], size: [26.0, 7.0, 2.0]}
+  - id: COV-01
+    name: 盖板
+    material: AL6061
+    pose: {xyz: [0.0, 0.0, 0.0], rpy: [0.0, 0.0, 0.0]}
+    geometry:
+      source: example
+      shapes:
+        - {type: box, center: [0.0, 0.0, 31.5], size: [120.0, 80.0, 3.0]}
+
+screws:
+  - {id: M2x5-machine, name: M2x5 机螺钉}
+  - {id: M2x6-tapping, name: M2x6 自攻螺钉}
+  - {id: M3x8-machine, name: M3x8 机螺钉}
+
+ctq:
+  - {id: CTQ-1, name: 盖板防护}
+  - {id: CTQ-2, name: 主板接地}
+
+steps:
+  - {id: S010, type: place, part: BASE-01, actor: upstream, duration_s: 0}
+  - {id: S020, type: place, part: SPC-01, actor: upstream, duration_s: 0}
+  - {id: S030, type: place, part: PCB-02, actor: operator, duration_s: 4.0}
+  - id: S040
+    type: fasten
+    group: A
+    name: 主板
+    fastens: PCB-02
+    into: BASE-01
+    screw: M2x5-machine
+    hole: {material: AL6061, spec: M2-thread, depth_mm: 3.0, source: example}
+    approach: [0.0, 0.0, -1.0]
+    actor: robot
+    on_ng: {action: continue}
+    points:
+      - {id: A1, xyz: [40.0, 22.0, 11.6], ctq: [CTQ-2]}
+      - {id: A2, xyz: [-40.0, 22.0, 11.6]}
+      - {id: A3, xyz: [-40.0, -26.0, 11.6]}
+      - {id: A4, xyz: [40.0, -26.0, 11.6]}
+  - {id: S050, type: place, part: HLD-01, actor: operator, duration_s: 3.0}
+  - {id: S060, type: place, part: CLP-01, actor: operator, duration_s: 3.0}
+  - id: S070
+    type: fasten
+    group: K
+    name: 线缆压板
+    fastens: CLP-01
+    into: HLD-01
+    screw: M2x6-tapping
+    hole: {material: PC, d_mm: 1.5, depth_mm: 4.0, source: example}
+    approach: [0.0, 0.0, -1.0]
+    actor: robot
+    on_ng: {action: stop_unit}
+    points:
+      - {id: K1, xyz: [9.0, 33.0, 20.0]}
+      - {id: K2, xyz: [-9.0, 33.0, 20.0]}
+  - {id: S080, type: place, part: COV-01, actor: operator, duration_s: 4.0}
+  - id: S090
+    type: fasten
+    group: B
+    name: 盖板
+    fastens: COV-01
+    into: SPC-01
+    screw: M3x8-machine
+    hole: {material: AL6061, spec: M3-thread, depth_mm: 4.5, source: example}
+    approach: [0.0, 0.0, -1.0]
+    actor: robot
+    on_ng: {action: continue}
+    ctq: [CTQ-1]
+    points:
+      - {id: B1, xyz: [52.0, 32.0, 33.0]}
+      - {id: B2, xyz: [-52.0, 32.0, 33.0]}
+      - {id: B3, xyz: [-52.0, -32.0, 33.0]}
+      - {id: B4, xyz: [52.0, -32.0, 33.0]}
+
+open_items:
+  - {id: OI-1, about: frame.mounting_in_fixture, text: 本产品没有专用治具，示例借用 FX-JOINT-V1}

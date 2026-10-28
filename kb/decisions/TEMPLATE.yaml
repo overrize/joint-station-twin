@@ -1,0 +1,9 @@
+id: DEC-XXX
+date: YYYY-MM-DD
+decision: 选了什么
+rejected: 还考虑过什么，为什么不选
+assumptions: 当时依赖的前提
+invalidation: 什么情况下这个决定该重新审视
+trigger: 不可逆 | 跨边界 | 偏离默认
+confirmed_by: 待确认
+links: []

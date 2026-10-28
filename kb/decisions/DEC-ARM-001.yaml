@@ -1,0 +1,27 @@
+id: DEC-ARM-001
+date: 2026-10-24
+decision: >-
+  孪生里的机械臂沿用知识库模块 ARM-UR5E，不换型号；Isaac 资产用 /Isaac/Robots/UniversalRobots/ur5e/ur5e.usd
+  （相对资产库根路径，本机核实存在）；逆解与运动规划用已弃用但 6.2 仍随包提供的 Lula 栈
+  （扩展 isaacsim.robot_motion.motion_generation，配置 load_supported_lula_kinematics_solver_config("UR5e")，
+  末端坐标系 tool0）。本机核实：build/station/arm_program.json 的 39 个 movel 位姿全部解出，
+  正解回代位置误差最大 0.0012 mm。
+rejected: >-
+  UR10 + cuMotion：新栈现成配置，但臂展、负载、精度与 UR5e 不同，需新增模块并重算可达性、节拍与误差预算，
+  规格数据须另行提供，与已签字结果不一致；
+  UR5e + 自写 XRDF 接 cuMotion：型号不变，但 XRDF 要自行编写调试，工作量和不确定性最大，不符合「能稳定跑通」优先。
+assumptions: >-
+  Isaac 版本按 DEC-ENV-001 冻结在 6.2.0，Lula 扩展在此版本可用；机械臂程序只需到位、保持、退出，
+  IK 足够，不依赖新栈的避障规划；本次核实以 tool0 为末端、底座在原点，未计入电批 TCP 偏移，
+  TCP 偏移在 M3.2 按执行器模块数据加入后需复核。
+invalidation: >-
+  升级 Isaac 导致 Lula 扩展被移除或行为变化；更换机械臂型号；加入电批 TCP 偏移后有点位逆解失败；
+  需要避障运动规划。
+trigger: 偏离默认
+confirmed_by: 用户（2026-10-24 确认：选 A，UR5e + Lula）
+status: confirmed
+links:
+  - docs/03-plan.md#M2.2
+  - docs/isaac-api-notes.md
+  - kb/modules/arm-ur5e.yaml
+  - kb/decisions/DEC-ENV-001.yaml

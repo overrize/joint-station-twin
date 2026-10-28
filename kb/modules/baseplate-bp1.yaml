@@ -1,0 +1,6 @@
+example_data: true
+id: BP-1
+type: baseplate
+name: 定位销基板
+pin_grid_mm: 50
+placement_tolerance_mm: 0.1

@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head>
+<body>
+<title>关节紧固工站演示</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* layout: product-page hero, then one presenter stage (step rail + live stage + agent team), then three short explainer cards */
+:root{
+  --bg:#FBFBFD; --surface:#FFFFFF; --surface-2:#F5F5F7; --ink:#1D1D1F; --ink-2:#6E6E73; --line:#D2D2D7;
+  --accent:#0071E3; --accent-soft:rgba(0,113,227,.08); --ok:#248A3D; --ok-soft:rgba(36,138,61,.10);
+  --warn:#C93400; --warn-soft:rgba(201,52,0,.08); --band:rgba(0,113,227,.12);
+  --f:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","PingFang SC","Noto Sans SC","Helvetica Neue",Arial,sans-serif;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:18px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#000000; --surface:#1C1C1E; --surface-2:#2C2C2E; --ink:#F5F5F7; --ink-2:#A1A1A6; --line:#38383A;
+  --accent:#2997FF; --accent-soft:rgba(41,151,255,.14); --ok:#30D158; --ok-soft:rgba(48,209,88,.14);
+  --warn:#FF9F0A; --warn-soft:rgba(255,159,10,.14); --band:rgba(41,151,255,.20); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#000000; --surface:#1C1C1E; --surface-2:#2C2C2E; --ink:#F5F5F7; --ink-2:#A1A1A6; --line:#38383A;
+  --accent:#2997FF; --accent-soft:rgba(41,151,255,.14); --ok:#30D158; --ok-soft:rgba(48,209,88,.14);
+  --warn:#FF9F0A; --warn-soft:rgba(255,159,10,.14); --band:rgba(41,151,255,.20); color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);font-size:17px;line-height:1.47;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
+button{font-family:inherit}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.pad{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+
+/* nav */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--line)}
+.nav-in{max-width:1180px;margin:0 auto;height:52px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.nav b{font-size:15px;font-weight:600}
+.nav span{font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+
+/* hero */
+.hero{max-width:980px;margin:0 auto;text-align:center;padding-block:64px 40px}
+.eyebrow{font-size:17px;font-weight:600;color:var(--accent);margin:0 0 10px}
+h1{font-size:clamp(36px,6.4vw,64px);line-height:1.06;letter-spacing:-.035em;font-weight:700;margin:0 0 18px;text-wrap:balance}
+.sub{font-size:clamp(18px,2.3vw,22px);color:var(--ink-2);max-width:34em;margin:0 auto 30px;text-wrap:balance}
+.prompt{display:inline-flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:10px 10px 10px 22px;max-width:100%;box-shadow:0 8px 30px rgba(0,0,0,.06);text-align:left}
+.prompt span{font-size:16px;min-width:0}
+.btn{appearance:none;border:0;border-radius:999px;background:var(--accent);color:#fff;font-size:15px;font-weight:500;padding:10px 20px;cursor:pointer;white-space:nowrap}
+.btn:disabled{opacity:.35;cursor:default}
+.btn.ghost{background:var(--surface-2);color:var(--ink)}
+.btn.ok{background:var(--ok)}
+.fine{font-size:12px;color:var(--ink-2);margin:14px 0 0}
+
+/* stage */
+.stage-wrap{max-width:1180px;margin:0 auto;padding-block:20px 40px}
+.stage{display:grid;grid-template-columns:230px minmax(0,1fr);background:var(--surface);border-radius:28px;border:1px solid var(--line);overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.06)}
+.rail{border-right:1px solid var(--line);padding:22px 12px;background:var(--surface-2)}
+.rail h3{font-size:12px;font-weight:600;color:var(--ink-2);margin:0 10px 10px;letter-spacing:.02em}
+.rail ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.rail button{width:100%;display:flex;align-items:center;gap:10px;border:0;background:transparent;color:var(--ink);text-align:left;padding:9px 10px;border-radius:12px;font-size:14px;cursor:pointer}
+.rail button:hover{background:var(--surface)}
+.rail button .n{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:600;background:var(--surface);border:1px solid var(--line);color:var(--ink-2);flex:0 0 22px;font-variant-numeric:tabular-nums}
+.rail button.done .n{background:var(--ok);border-color:var(--ok);color:#fff}
+.rail button.on{background:var(--surface);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.rail button.on .n{background:var(--accent);border-color:var(--accent);color:#fff}
+.rail .gate{margin-left:auto;font-size:11px;color:var(--warn)}
+.rail button.signed .gate{color:var(--ok)}
+
+.main{min-width:0;display:flex;flex-direction:column}
+.team{display:flex;flex-wrap:wrap;gap:8px;padding:16px 24px;border-bottom:1px solid var(--line)}
+.agent{display:inline-flex;align-items:center;gap:7px;font-size:13px;padding:6px 12px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);transition:background .25s,color .25s}
+.agent i{width:7px;height:7px;border-radius:50%;background:var(--line);transition:background .25s}
+.agent.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.agent.on i{background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+
+.view{padding:28px 28px 8px;min-height:470px}
+.view h2{font-size:clamp(24px,3vw,32px);letter-spacing:-.025em;line-height:1.15;margin:0 0 6px;font-weight:700;text-wrap:balance}
+.view .lead{color:var(--ink-2);margin:0 0 22px;max-width:44em}
+.fade{animation:fade .45s ease both}
+@keyframes fade{from{opacity:.001;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}
+.card{background:var(--surface-2);border-radius:var(--r);padding:16px 18px;min-width:0}
+.card .k{font-size:12px;color:var(--ink-2);margin:0 0 4px}
+.card .v{font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.card .d{font-size:13px;color:var(--ink-2);margin-top:2px}
+.card.hl{background:var(--accent-soft)}
+.card.warn{background:var(--warn-soft)}
+.card.warn .v{color:var(--warn)}
+.card.ok{background:var(--ok-soft)}
+.card.ok .v{color:var(--ok)}
+
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:14px;margin-bottom:16px}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:14px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font-size:12px;font-weight:600;color:var(--ink-2);background:var(--surface-2)}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.pill.lib{background:var(--ok-soft);color:var(--ok)}
+.pill.mdl{background:var(--accent-soft);color:var(--accent)}
+.pill.no{background:var(--warn-soft);color:var(--warn)}
+
+.issue{display:flex;gap:14px;align-items:flex-start;background:var(--warn-soft);border-radius:var(--r);padding:16px 18px;margin-bottom:16px}
+.issue .ic{width:26px;height:26px;border-radius:50%;background:var(--warn);color:#fff;display:grid;place-items:center;font-weight:700;flex:0 0 26px;font-size:14px}
+.issue p{margin:0;font-size:15px}
+.issue b{font-weight:600}
+
+pre.code{font-family:var(--mono);font-size:12.5px;line-height:1.6;background:var(--surface-2);border-radius:14px;padding:16px 18px;overflow-x:auto;margin:0 0 16px;color:var(--ink)}
+pre.code .c{color:var(--ink-2)}
+pre.code .h{color:var(--accent);font-weight:600}
+
+.files{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-bottom:16px}
+.file{display:flex;align-items:center;gap:10px;background:var(--surface-2);border-radius:12px;padding:10px 12px;font-size:13px;min-width:0}
+.file .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:0 0 8px}
+.file span{overflow-wrap:anywhere}
+
+.tests{display:grid;gap:8px;margin-bottom:16px}
+.test{display:flex;align-items:center;gap:12px;background:var(--surface-2);border-radius:12px;padding:11px 14px;font-size:14px}
+.test .st{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);flex:0 0 22px;display:grid;place-items:center;font-size:12px;color:#fff;transition:all .25s}
+.test.pass .st{background:var(--ok);border-color:var(--ok)}
+.test.fail .st{background:var(--warn);border-color:var(--warn)}
+.test .why{margin-left:auto;color:var(--ink-2);font-size:12.5px;text-align:right}
+
+.diff{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.diff>div{border-radius:var(--r);padding:14px 16px;font-size:14px;min-width:0}
+.diff .b{background:var(--warn-soft)}
+.diff .a{background:var(--ok-soft)}
+.diff h4{margin:0 0 6px;font-size:12px;color:var(--ink-2);font-weight:600}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.chip{font-size:13px;font-weight:600;padding:8px 12px;border-radius:12px;background:var(--surface-2);color:var(--ink-2);font-variant-numeric:tabular-nums}
+.chip.hit{background:var(--warn-soft);color:var(--warn);box-shadow:inset 0 0 0 1.5px var(--warn)}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}
+
+.svgbox{overflow-x:auto;margin-bottom:12px;border-radius:var(--r);background:var(--surface-2)}
+svg.dg{display:block;width:100%;min-width:560px;height:auto;color:var(--ink);font-family:var(--f)}
+svg .bx{fill:var(--surface);stroke:var(--line);stroke-width:1.5}
+svg .bx.key{stroke:var(--accent);stroke-width:2.5}
+svg .t{fill:currentColor;font-size:13px;font-weight:600}
+svg .ts{fill:var(--ink-2);font-size:11px}
+svg .ln{stroke:var(--ink-2);stroke-width:1.5;fill:none}
+svg .ln.key{stroke:var(--accent);stroke-width:2}
+svg .lb{fill:var(--ink-2);font-size:11px}
+svg .lb.key{fill:var(--accent);font-weight:600}
+svg .belt{fill:var(--surface);stroke:var(--line);stroke-width:1.5}
+svg .grid{stroke:var(--line);stroke-width:1}
+svg .band{fill:var(--band)}
+svg .crv{stroke:var(--accent);stroke-width:2.5;fill:none}
+svg .fin{fill:var(--ok)}
+
+.log{margin:0 28px 0;border-top:1px solid var(--line);padding:14px 0 6px;font-family:var(--mono);font-size:12.5px;color:var(--ink-2);min-height:96px}
+.log div{padding:2px 0;animation:fade .3s ease both}
+.log b{color:var(--accent);font-weight:600}
+
+.bar{display:flex;align-items:center;gap:12px;padding:16px 28px 22px;flex-wrap:wrap}
+.signbox{display:flex;align-items:center;gap:12px;background:var(--warn-soft);border-radius:999px;padding:6px 6px 6px 16px;font-size:14px}
+.signbox.signed{background:var(--ok-soft);color:var(--ok);font-weight:600;padding:10px 16px}
+.bar .sp{margin-left:auto;display:flex;gap:8px}
+.kbd{font-size:12px;color:var(--ink-2)}
+
+/* explainers */
+.how{max-width:1180px;margin:0 auto;padding-block:40px 90px}
+.how h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.03em;margin:0 0 24px;text-align:center;text-wrap:balance}
+.how-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.how-card{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:26px 24px;min-width:0}
+.how-card h3{font-size:20px;letter-spacing:-.02em;margin:0 0 8px}
+.how-card p{margin:0;color:var(--ink-2);font-size:15px}
+.how-card pre{font-family:var(--mono);font-size:12px;background:var(--surface-2);border-radius:12px;padding:12px;margin:14px 0 0;overflow-x:auto;color:var(--ink)}
+
+@media (max-width:900px){
+  .stage{grid-template-columns:1fr}
+  .rail{border-right:0;border-bottom:1px solid var(--line);padding:12px}
+  .rail h3{display:none}
+  .rail ol{display:flex;overflow-x:auto;gap:4px;padding-bottom:2px}
+  .rail button{white-space:nowrap;width:auto}
+  .rail .gate{display:none}
+  .how-grid{grid-template-columns:1fr}
+  .diff{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .view{padding:22px 18px 6px}
+  .log{margin:0 18px}
+  .bar{padding:14px 18px 18px}
+  .team{padding:12px 18px}
+  .prompt{flex-direction:column;border-radius:22px;padding:16px;align-items:stretch;text-align:center}
+  .test .why{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+
+/* 线体看板回放 */
+.kb{max-width:1180px;margin:0 auto;padding-block:10px 50px}
+.kb h2{font-size:clamp(24px,3.4vw,34px);letter-spacing:-.02em;margin:0 0 6px;text-align:center}
+.kb .lead{text-align:center;margin:0 auto 18px;max-width:60ch}
+.kb-board{background:#0e1c30;color:#fff;border-radius:22px;padding:22px 24px;font-variant-numeric:tabular-nums}
+.kb-top{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:baseline;margin-bottom:14px}
+.kb-top b{font-size:15px;opacity:.75;font-weight:500}
+.kb-top span{font-size:26px;font-weight:700}
+.kb-row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,.8fr);gap:10px;padding:9px 0;border-top:1px solid rgba(255,255,255,.12);font-size:16px}
+.kb-st{font-weight:600}
+.kb-ctl{display:flex;gap:12px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.kb-ctl input{flex:1;min-width:160px}
+</style>
+
+<header class="nav pad"><div class="nav-in"><b>关节紧固工站 · Agent 演示</b><span id="navc"></span></div></header>
+
+<section class="hero pad">
+  <p class="eyebrow">非标自动化，标准化交付</p>
+  <h1>说一句话，<br>得到一个能装上产线的工站。</h1>
+  <p class="sub">Agent 从模组资料出发，完成工艺规划、工站方案、控制代码和整套文件。人只在四个关口签字。</p>
+  <div class="prompt"><span>给这个关节模组做一个紧固工站，节拍 45 秒。</span><button class="btn" id="go" type="button">开始演示</button></div>
+  <p class="fine" id="fine">演示使用示例数据，扭矩和节拍数值不构成工艺推荐。机械臂与输送段在工站的数字孪生中运行。</p>
+</section>
+
+<section class="stage-wrap pad" id="demo" aria-label="演示">
+  <div class="stage">
+    <nav class="rail" aria-label="演示步骤"><h3>流程</h3><ol id="rail"></ol></nav>
+    <div class="main">
+      <div class="team" id="team" aria-label="当前在工作的 agent"></div>
+      <div class="view" id="view" aria-live="polite"></div>
+      <div class="log" id="log" aria-label="Relay 运行日志"></div>
+      <div class="bar">
+        <div id="gate"></div>
+        <div class="sp">
+          <button class="btn ghost" id="prev" type="button">上一步</button>
+          <button class="btn" id="next" type="button">下一步</button>
+        </div>
+        <span class="kbd">键盘 ← → 翻页</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="kb pad" id="kb" hidden>
+  <h2>线体看板 · 孪生回放</h2>
+  <p class="lead" id="kb-lead"></p>
+  <div class="kb-board" aria-live="polite">
+    <div class="kb-top"><div><b>送达下游</b> <span id="kb-del">0</span></div><div><b>良率</b> <span id="kb-yield">—</span></div>
+      <div><b>开工间隔</b> <span id="kb-int">—</span></div><div><b>仿真时间</b> <span id="kb-t">0</span></div></div>
+    <div id="kb-rows"></div>
+    <div class="kb-ctl"><button class="btn" type="button" id="kb-play">播放</button><input type="range" id="kb-slider" min="0" max="100" step="0.5" value="0" aria-label="回放时间"></div>
+  </div>
+</section>
+
+<section class="how pad">
+  <h2>它为什么能做到</h2>
+  <div class="how-grid">
+    <div class="how-card"><h3>库在先</h3><p>模块库、工艺库、规则库都放在一个有版本的仓库里。Agent 组合库里已有的东西，不做非标设计。库里没有，就明确说没有。</p>
+      <pre>kb/modules/
+kb/rules/
+process/library/
+process/procmodel</pre></div>
+    <div class="how-card"><h3>工艺在执行器里</h3><p>机械臂只负责把执行器送到位并锁定。找正、贴合、分段拧紧、判定，全部在执行器内完成，臂的程序里不出现扭矩。</p>
+      <pre>业务流（设备无关）
+  ├ 工站状态机
+  └ 机械臂程序（按品牌生成）</pre></div>
+    <div class="how-card"><h3>对不对由测试说了算</h3><p>方案合法性、可达性、节拍、状态机、职责边界、一致性，都写成测试。Agent 自报完成不算数，测试由控制器独立运行后才算验收。</p>
+      <pre>tests/
+  feasibility  reach  takt
+  statemachine  boundary
+  consistency  erasure</pre></div>
+  </div>
+</section>
+
+<!-- 构建时由 jsdemo/presenter.py 整段替换；源文件里是一次运行结果的快照 -->
+<script id="demo-data" type="application/json">{"source": "snapshot", "example_data": true, "generated": "2026-10-25T14:04:50", "status": "accepted", "product": {"id": "joint-v1", "name": "一体化关节模组", "target_takt_s": 45}, "points": 13, "point_ids": ["C1", "C2", "C3", "D1", "D2", "D3", "D4", "E1", "E2", "E3", "E4", "E5", "E6"], "groups": [{"id": "C", "name": "编码器", "screw": "M2x5-machine", "material": "AL6061", "part": "编码器", "count": 3, "points": ["C1", "C2", "C3"], "range": "C1–C3", "window_nm": [0.32, 0.38], "stages": ["寻牙", "终拧"], "status": "library", "confidence": "high", "window_id": "W-AL-M2-03"}, {"id": "D", "name": "驱动板", "screw": "M2x6-tapping", "material": "PA66", "part": "驱动板", "count": 4, "points": ["D1", "D2", "D3", "D4"], "range": "D1–D4", "window_nm": [0.15, 0.21], "stages": ["寻牙", "成形", "贴合", "终拧"], "status": "model", "confidence": "medium", "window_id": "W-PA66-M2-6T-H16"}, {"id": "E", "name": "端盖", "screw": "M3x8-machine", "material": "AL6061", "part": "端盖", "count": 6, "points": ["E1", "E2", "E3", "E4", "E5", "E6"], "range": "E1–E6", "window_nm": [0.9, 1.1], "stages": ["寻牙", "快拧", "终拧"], "status": "library", "confidence": "high", "window_id": "W-AL-M3-02"}], "materials": ["AL6061", "PA66"], "ctq": ["端盖密封", "编码器同心", "驱动板接地"], "sop": {"path": "kb/sop/joint-v1.sop.yaml", "counts": {"error": 0, "blocker": 12, "review": 1, "warning": 18}, "buildable": true, "signable": false}, "dfm": {"rules_checked": 4, "points_passed": 12, "points_total": 13, "issues": [{"rule": "DFM-01", "point": "D3", "obstacle": "C12", "measured_mm": 2.1, "limit_mm": 3.0, "message": "D3 批头进不去：电容 C12 距孔位中心 2.1 mm，下限 3.0 mm", "suggestion": "把 C12 外移至少 1.2 mm，或调整 D3 的孔位"}]}, "erasure": {"status": "unknown", "reason": "库中没有 PEEK + M2x6-tapping 的样本", "material": "PEEK", "screw": "M2x6-tapping"}, "compose": {"modules": 10, "takt": {"per_point_s": 2.7, "points": 13, "load_unload_s": 6.0, "total_s": 41.1, "target_s": 45, "ok": true}}, "generate": {"files": ["flow.yaml", "arm_program.json", "arm_program.urscript", "station.yaml", "params/C1.yaml", "params/C2.yaml", "params/C3.yaml", "params/D1.yaml", "params/D2.yaml", "params/D3.yaml", "params/D4.yaml", "params/E1.yaml", "params/E2.yaml", "params/E3.yaml", "params/E4.yaml", "params/E5.yaml", "params/E6.yaml", "docs/wi.md", "docs/pfmea.csv", "docs/control_plan.csv", "docs/checklist.md", "docs/trace_map.yaml", "docs/spares.md"], "params": 13, "decisions": ["DEC-001", "DEC-002", "DEC-003-D"], "flow_d1": {"point": "D1", "group": "D", "approach": {"frame": "FX-JOINT-V1", "xyz": [20.0, 15.0, 56.0], "rpy": [180, 0, 0]}, "engage": {"frame": "FX-JOINT-V1", "xyz": [20.0, 15.0, 26.0], "rpy": [180, 0, 0]}, "handoff": "tier0", "executor_params": "W-PA66-M2-6T-H16", "on_ng": ["retract", "mark_ng", "stop_unit"]}, "station_id": "JS-01", "fixture": "FX-JOINT-V1"}, "review": {"found": [{"point": "C2", "kind": "missing_control", "message": "C2 缺少控制计划条目"}, {"point": "C2", "kind": "pfmea_uncovered", "message": "C2 属于 PFMEA 高风险组 C，但控制计划未覆盖"}], "fixed": true, "remaining": []}, "verify": {"feasibility": true, "reach": true, "takt": true, "boundary": true, "consistency": true, "erasure": true, "clearance": true}, "verify_clearance": {"method": "工具包络沿程序直线段扫掠（步长 1 mm），对已放零件与元件的简化体；不含机械臂连杆", "envelope_source": "demo_placeholder", "points": [{"point": "C1", "min_gap_mm": 16.5, "hits": []}, {"point": "C2", "min_gap_mm": 16.5, "hits": []}, {"point": "C3", "min_gap_mm": 16.5, "hits": []}, {"point": "D1", "min_gap_mm": 6.5, "hits": []}, {"point": "D2", "min_gap_mm": 6.5, "hits": []}, {"point": "D3", "min_gap_mm": -0.898, "hits": [{"obstacle": "C12", "part": "PCB-01", "tool": "screw", "legs": ["approach"], "depth_mm": 0.398, "known": true}, {"obstacle": "C12", "part": "PCB-01", "tool": "bit", "legs": ["approach", "retract"], "depth_mm": 0.898, "known": true}]}, {"point": "D4", "min_gap_mm": 6.5, "hits": []}, {"point": "E1", "min_gap_mm": null, "hits": []}, {"point": "E2", "min_gap_mm": null, "hits": []}, {"point": "E3", "min_gap_mm": null, "hits": []}, {"point": "E4", "min_gap_mm": null, "hits": []}, {"point": "E5", "min_gap_mm": null, "hits": []}, {"point": "E6", "min_gap_mm": null, "hits": []}], "new_hits": [], "known_hits": [{"obstacle": "C12", "part": "PCB-01", "tool": "screw", "legs": ["approach"], "depth_mm": 0.398, "known": true, "point": "D3"}, {"obstacle": "C12", "part": "PCB-01", "tool": "bit", "legs": ["approach", "retract"], "depth_mm": 0.898, "known": true, "point": "D3"}], "ok": true}, "fai": {"sn": "FAI-0001", "ok": 13, "total": 13, "d_final_nm": [0.1723, 0.1723], "d1_final_nm": 0.1723, "d1_curve": [[0.0, 0.0], [10.0, 0.0036], [20.0, 0.0072], [30.0, 0.0107], [40.0, 0.0141], [50.0, 0.0175], [60.0, 0.0207], [70.0, 0.0238], [80.0, 0.0268], [90.0, 0.0298], [100.0, 0.0326], [110.0, 0.0353], [120.0, 0.0381], [130.0, 0.0408], [140.0, 0.0435], [150.0, 0.0462], [160.0, 0.049], [170.0, 0.0519], [180.0, 0.0549], [190.0, 0.0581], [200.0, 0.0613], [210.0, 0.0615], [220.0, 0.0617], [230.0, 0.0621], [240.0, 0.0625], [250.0, 0.0629], [260.0, 0.0634], [270.0, 0.0638], [280.0, 0.0642], [290.0, 0.0645], [300.0, 0.0647], [310.0, 0.0648], [320.0, 0.0648], [330.0, 0.0647], [340.0, 0.0644], [350.0, 0.0641], [360.0, 0.0637], [370.0, 0.0633], [380.0, 0.0629], [390.0, 0.0624], [400.0, 0.062], [410.0, 0.0617], [420.0, 0.0614], [430.0, 0.0613], [440.0, 0.0612], [450.0, 0.0613], [460.0, 0.0614], [470.0, 0.0617], [480.0, 0.062], [490.0, 0.0624], [500.0, 0.0629], [510.0, 0.0633], [520.0, 0.0638], [530.0, 0.0641], [540.0, 0.0644], [550.0, 0.0647], [560.0, 0.0648], [570.0, 0.0648], [580.0, 0.0647], [590.0, 0.0645], [600.0, 0.0642], [610.0, 0.0638], [620.0, 0.0634], [630.0, 0.0629], [640.0, 0.0625], [650.0, 0.0621], [660.0, 0.0617], [670.0, 0.0614], [680.0, 0.0613], [690.0, 0.0612], [700.0, 0.0612], [710.0, 0.0614], [720.0, 0.0616], [730.0, 0.062], [740.0, 0.0624], [750.0, 0.0628], [760.0, 0.0633], [770.0, 0.0637], [780.0, 0.0641], [790.0, 0.0644], [800.0, 0.0646], [810.0, 0.0648], [820.0, 0.0648], [830.0, 0.0647], [840.0, 0.0645], [850.0, 0.0642], [860.0, 0.0638], [870.0, 0.0634], [880.0, 0.063], [890.0, 0.0625], [900.0, 0.0621], [910.0, 0.0618], [920.0, 0.0615], [930.0, 0.0613], [940.0, 0.0612], [950.0, 0.0612], [960.0, 0.0614], [970.0, 0.0616], [980.0, 0.0619], [990.0, 0.0623], [1000.0, 0.0628], [1010.0, 0.0632], [1020.0, 0.0636], [1030.0, 0.064], [1040.0, 0.0644], [1050.0, 0.0646], [1060.0, 0.0648], [1070.0, 0.0648], [1080.0, 0.0647], [1090.0, 0.0645], [1100.0, 0.0643], [1110.0, 0.0639], [1120.0, 0.0635], [1130.0, 0.063], [1140.0, 0.0626], [1150.0, 0.0622], [1160.0, 0.0618], [1170.0, 0.0615], [1180.0, 0.0613], [1190.0, 0.0612], [1200.0, 0.0612], [1210.0, 0.0613], [1220.0, 0.0616], [1230.0, 0.0619], [1240.0, 0.0623], [1250.0, 0.0627], [1260.0, 0.0632], [1270.0, 0.0636], [1280.0, 0.064], [1290.0, 0.0643], [1300.0, 0.0646], [1310.0, 0.0647], [1320.0, 0.0648], [1330.0, 0.0647], [1340.0, 0.0646], [1350.0, 0.0643], [1360.0, 0.064], [1370.0, 0.0635], [1380.0, 0.0631], [1390.0, 0.0627], [1400.0, 0.0622], [1410.0, 0.0619], [1420.0, 0.0615], [1430.0, 0.0613], [1440.0, 0.0612], [1450.0, 0.0612], [1460.0, 0.0613], [1470.0, 0.0615], [1480.0, 0.0618], [1490.0, 0.0622], [1500.0, 0.0626], [1510.0, 0.0631], [1520.0, 0.0635], [1530.0, 0.0639], [1540.0, 0.0643], [1550.0, 0.0646], [1560.0, 0.0647], [1570.0, 0.0648], [1580.0, 0.0648], [1590.0, 0.0646], [1600.0, 0.0643], [1610.0, 0.064], [1620.0, 0.0636], [1630.0, 0.0632], [1640.0, 0.0627], [1650.0, 0.0623], [1660.0, 0.0619], [1670.0, 0.0616], [1680.0, 0.0614], [1690.0, 0.0612], [1700.0, 0.0612], [1710.0, 0.0613], [1720.0, 0.0615], [1730.0, 0.0618], [1740.0, 0.0622], [1750.0, 0.0626], [1760.0, 0.063], [1770.0, 0.0635], [1780.0, 0.0639], [1790.0, 0.0643], [1800.0, 0.0645], [1810.0, 0.0647], [1820.0, 0.0648], [1830.0, 0.0648], [1840.0, 0.0646], [1850.0, 0.0644], [1860.0, 0.0641], [1870.0, 0.0637], [1880.0, 0.0632], [1890.0, 0.0628], [1900.0, 0.0623], [1910.0, 0.0619], [1920.0, 0.0616], [1930.0, 0.0614], [1940.0, 0.0612], [1950.0, 0.0612], [1960.0, 0.0613], [1970.0, 0.0615], [1980.0, 0.0618], [1990.0, 0.0621], [2000.0, 0.0625], [2010.0, 0.063], [2020.0, 0.0634], [2030.0, 0.0638], [2040.0, 0.0642], [2050.0, 0.0645], [2060.0, 0.0647], [2070.0, 0.0648], [2080.0, 0.0648], [2090.0, 0.0646], [2100.0, 0.0644], [2110.0, 0.0641], [2120.0, 0.0637], [2130.0, 0.0633], [2140.0, 0.0628], [2150.0, 0.0624], [2160.0, 0.062], [2170.0, 0.0617], [2180.0, 0.0637], [2190.0, 0.0672], [2200.0, 0.0725], [2210.0, 0.0793], [2220.0, 0.0874], [2230.0, 0.0966], [2240.0, 0.1069], [2250.0, 0.1182], [2260.0, 0.1304], [2270.0, 0.1435], [2280.0, 0.1575], [2290.0, 0.1723]]}, "ecn": {"id": "ECN-001", "title": "驱动板支架改用 PC", "affected": ["D1", "D2", "D3", "D4"], "unaffected": ["C1", "C2", "C3", "E1", "E2", "E3", "E4", "E5", "E6"], "files": 12, "refai": ["D1", "D2", "D3", "D4"], "window_nm": [0.19, 0.25], "status": "model", "confidence": "medium"}, "twin": {"report": "twin/twin_report_dfmfix.json", "generated": "2026-10-24T20:17:42", "twin_ok": true, "unit_result": "OK", "points_arrived": 13, "points_total": 13, "collisions": 0, "hole_err_max_mm": 0.0124, "results_ok": 13, "takt": {"arm_sim_s": 56.87, "load_unload_s": 6.0, "measured_s": 62.87, "estimated_s": 41.1, "deviation_pct": 53.0, "target_s": 45}}, "gates": [{"stage": "dfm", "signer_role": "研发", "approved": true, "time": "2026-10-25T14:04:50", "auto": true}, {"stage": "process", "signer_role": "工艺工程师", "approved": true, "time": "2026-10-25T14:04:50", "auto": true}, {"stage": "compose", "signer_role": "项目负责人", "approved": true, "time": "2026-10-25T14:04:50", "auto": true}, {"stage": "fai", "signer_role": "质量", "approved": true, "time": "2026-10-25T14:04:50", "auto": true}], "log": {"intake": [["调研", "SOP kb/sop/joint-v1.sop.yaml：error 0、缺失 12、待审 1、警告 18（不可签字，缺失项需人补）"], ["调研", "读取 joint-v1：13 个紧固点，3 组，3 项关键特性"]], "dfm": [["调研", "D3 批头进不去：电容 C12 距孔位中心 2.1 mm，下限 3.0 mm"], ["秘书", "记录决策草稿 DEC-001：把 C12 外移至少 1.2 mm，或调整 D3 的孔位"], ["PM", "关口 dfm：研发 已签字"]], "process": [["实现", "编码器 AL6061 M2x5-machine：0.32–0.38 N·m（library，置信度 high）"], ["实现", "驱动板 PA66 M2x6-tapping：0.15–0.21 N·m（model，置信度 medium）"], ["实现", "端盖 AL6061 M3x8-machine：0.9–1.1 N·m（library，置信度 high）"], ["实现", "擦除演示：PEEK + M2 自攻 → unknown（库中没有 PEEK + M2x6-tapping 的样本）"], ["PM", "关口 process：工艺工程师 已签字"]], "compose": [["秘书", "记录决策草稿 DEC-002：不加视觉找正"], ["实现", "组合 10 个模块，全部来自模块库"], ["验证", "节拍 41.1 s，目标 45 s"], ["PM", "关口 compose：项目负责人 已签字"]], "generate": [["秘书", "记录决策草稿 DEC-003-D：驱动板组 NG 后整件停止（来自 SOP）"], ["实现", "生成业务流、机械臂程序、19 个文件"]], "review": [["审查", "C2 缺少控制计划条目"], ["审查", "C2 属于 PFMEA 高风险组 C，但控制计划未覆盖"], ["实现", "按审查意见重新生成文件"], ["审查", "复核：0 处不一致"]], "verify": [["验证", "干涉 D3：screw 碰 C12（深 0.398 mm），DFM 已记录，待布局修改"], ["验证", "干涉 D3：bit 碰 C12（深 0.898 mm），DFM 已记录，待布局修改"], ["验证", "feasibility: 通过"], ["验证", "reach: 通过"], ["验证", "takt: 通过"], ["验证", "boundary: 通过"], ["验证", "consistency: 通过"], ["验证", "erasure: 通过"], ["验证", "clearance: 通过"]], "fai": [["验证", "首件 13/13 合格（演示曲线；真实部署时由执行器上传）"], ["PM", "关口 fai：质量 已签字"], ["PM", "收到变更 ECN-001：驱动板支架改用 PC"], ["实现", "D 组重推窗口：0.19–0.25 N·m（model）"], ["审查", "受影响 4 点，不受影响 9 点，需更新 12 处"]]}}</script>
+<script>
+(function(){
+  var ROLES=[["pm","PM"],["research","调研"],["impl","实现"],["review","审查"],["verify","验证"],["sec","秘书"]];
+  var signed={};
+
+  function E(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+
+  function moduleSvg(){
+    return '<div class="svgbox"><svg class="dg" viewBox="0 0 720 300" role="img" aria-label="工站布局：输送段把载具送到定位治具，机械臂把执行器送到紧固点，工站控制器经接口盒用四根线和执行器交接">'+
+    '<defs><marker id="ma" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>'+
+    '<marker id="mk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker></defs>'+
+    '<rect class="belt" x="30" y="226" width="660" height="40" rx="10"/>'+
+    '<text class="ts" x="50" y="251">输送段 → 载具进</text><text class="ts" x="670" y="251" text-anchor="end">载具出 →</text>'+
+    '<rect class="bx" x="300" y="196" width="120" height="44" rx="8"/><text class="t" x="360" y="216" text-anchor="middle">定位治具</text><text class="ts" x="360" y="232" text-anchor="middle">到位即定坐标</text>'+
+    '<circle class="bx" cx="360" cy="58" r="22"/><text class="t" x="360" y="63" text-anchor="middle">臂</text>'+
+    '<line class="ln" x1="360" y1="80" x2="360" y2="128" stroke-width="6" stroke-linecap="round" style="stroke:var(--line)"/>'+
+    '<rect class="bx key" x="316" y="130" width="88" height="44" rx="8"/><text class="t" x="360" y="150" text-anchor="middle">执行器</text><text class="ts" x="360" y="165" text-anchor="middle">工艺在这里</text>'+
+    '<line class="ln" x1="360" y1="176" x2="360" y2="194" marker-end="url(#ma)"/>'+
+    '<rect class="bx" x="470" y="40" width="104" height="44" rx="8"/><text class="t" x="522" y="60" text-anchor="middle">供钉器</text><text class="ts" x="522" y="75" text-anchor="middle">按点位供钉</text>'+
+    '<line class="ln" x1="470" y1="70" x2="406" y2="140" marker-end="url(#ma)"/><text class="lb" x="452" y="116">供钉</text>'+
+    '<rect class="bx" x="40" y="30" width="130" height="50" rx="8"/><text class="t" x="105" y="52" text-anchor="middle">工站控制器</text><text class="ts" x="105" y="68" text-anchor="middle">运行工站状态机</text>'+
+    '<rect class="bx key" x="150" y="128" width="110" height="44" rx="8"/><text class="t" x="205" y="148" text-anchor="middle">接口盒</text><text class="ts" x="205" y="163" text-anchor="middle">协议转换</text>'+
+    '<path class="ln key" d="M120,82 L180,126" marker-end="url(#mk)"/><text class="lb key" x="70" y="112">参数号</text>'+
+    '<line class="ln key" x1="262" y1="150" x2="314" y2="150" marker-end="url(#mk)"/><text class="lb key" x="288" y="141" text-anchor="middle">四根线</text>'+
+    '<path class="ln" d="M172,50 C260,40 300,46 336,52" marker-end="url(#ma)"/><text class="lb" x="250" y="36" text-anchor="middle">粗定位目标</text>'+
+    '<path class="ln" d="M70,82 C60,150 60,200 60,222" marker-end="url(#ma)"/><text class="lb" x="36" y="180">启停</text>'+
+    '<rect class="bx" x="590" y="128" width="100" height="44" rx="8"/><text class="t" x="640" y="148" text-anchor="middle">网关</text><text class="ts" x="640" y="163" text-anchor="middle">曲线与追溯</text>'+
+    '<line class="ln" x1="406" y1="152" x2="588" y2="152" marker-end="url(#ma)"/><text class="lb" x="500" y="144" text-anchor="middle">每颗螺钉的曲线</text>'+
+    '</svg></div>';
+  }
+
+  // 数值全部来自 demo-data（python -m jsdemo.presenter 构建时注入流水线与孪生的结果）
+  var D=JSON.parse(document.getElementById("demo-data").textContent);
+  function f(x,n){return Number(x).toFixed(n);}
+  function nm(w){return f(w[0],2)+"–"+f(w[1],2)+" N·m";}
+  function grp(id){return D.groups.filter(function(g){return g.id===id;})[0];}
+  function card(cls,k,v,d){return '<div class="card'+(cls?" "+cls:"")+'"><p class="k">'+k+'</p><div class="v">'+v+'</div>'+(d?'<div class="d">'+d+'</div>':'')+'</div>';}
+  var SRC={library:['lib',"工艺库"],model:['mdl',"模型推荐"]}, CONF={high:"高",medium:"中，首件收敛",low:"低"};
+  var DISPLAY_ORDER=["E","D","C"];   // 展示按端盖、驱动板、编码器（装配顺序反过来，先讲最大的一组）
+
+  function curveSvg(){
+    var c=D.fai.d1_curve, g0=grp("D"), w=g0.window_nm;
+    var W=640,H=240,L=48,R=16,T=16,B=36;
+    var amax=c[c.length-1][0], xmax=Math.ceil(amax*1.08/500)*500, ymax=Math.max(0.3,Math.ceil(w[1]*12)/10);
+    function X(a){return L+(W-L-R)*a/xmax;} function Y(t){return T+(H-T-B)*(1-t/ymax);}
+    var pts=c.map(function(p){return X(p[0]).toFixed(1)+","+Y(p[1]).toFixed(1);});
+    var g='', yt=[], xt=[];
+    for(var v=0;v<=ymax+1e-9;v+=0.1)yt.push(v);
+    for(var a=0;a<=xmax;a+=xmax/4)xt.push(a);
+    yt.forEach(function(v){g+='<line class="grid" x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(v)+'" y2="'+Y(v)+'"/><text class="lb" x="'+(L-8)+'" y="'+(Y(v)+4)+'" text-anchor="end">'+v.toFixed(1)+'</text>';});
+    xt.forEach(function(v){g+='<text class="lb" x="'+X(v)+'" y="'+(H-14)+'" text-anchor="middle">'+Math.round(v)+'°</text>';});
+    var bx0=X(amax*0.94), bx1=X(Math.min(xmax,amax*1.04)), fin=c[c.length-1];
+    return '<div class="svgbox"><svg class="dg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+E(g0.name)+' D1 的扭矩角度曲线，终止扭矩 '+f(fin[1],3)+' 牛米，窗口 '+nm(w)+'">'+g+
+      '<rect class="band" x="'+bx0+'" y="'+Y(w[1])+'" width="'+(bx1-bx0)+'" height="'+(Y(w[0])-Y(w[1]))+'" rx="4"/>'+
+      '<text class="lb key" x="'+(bx0-6)+'" y="'+(Y(w[1])-6)+'" text-anchor="end">窗口 '+nm(w)+'</text>'+
+      '<polyline class="crv" points="'+pts.join(" ")+'"/>'+
+      '<circle class="fin" cx="'+X(fin[0])+'" cy="'+Y(fin[1])+'" r="5"/>'+
+      '<text class="lb" x="'+L+'" y="'+(T-2)+'">扭矩 N·m · '+E(D.fai.sn)+' D1（演示曲线，真实部署由执行器上传）</text>'+
+      '</svg></div>';
+  }
+
+  var tk=D.compose.takt, tw=D.twin, dfmIssue=D.dfm.issues[0], er=D.erasure, ecn=D.ecn, gen=D.generate, d1=gen.flow_d1;
+  function twinTakt(){
+    if(!tw)return card("","孪生实测节拍","未运行","见 docs/03-plan.md M3.3");
+    return card("warn","孪生实测节拍",f(tw.takt.measured_s,1)+" s","比估算慢 "+f(tw.takt.deviation_pct,0)+"%：臂运动与放件 "+f(tw.takt.arm_sim_s,1)+" s + 上下料 "+tw.takt.load_unload_s+" s");
+  }
+  var CHECK_CN={feasibility:"方案合法性",reach:"可达性",takt:"节拍",boundary:"职责边界",consistency:"一致性",erasure:"擦除行为",clearance:"干涉检查"};
+
+  var STEPS=[
+    {t:"输入收编",roles:["pm","research"],k:"intake",
+     lead:"调研 Worker 读取 BOM、图纸和装配关系，把 "+D.points+" 个紧固点收编成结构化数据，并标出关键特性。",
+     html:function(){return '<div class="cards">'+card("hl","紧固点",D.points,D.groups.length+" 组，"+D.materials.length+" 种材料")+card("","目标节拍",D.product.target_takt_s+" s",D.example_data?"示例值":"")+card("","关键特性",D.ctq.length,E(D.ctq.join("、")))+'</div>'+
+      '<div class="tbl"><table><thead><tr><th>组</th><th>规格</th><th>材料</th><th>数量</th><th>点位</th></tr></thead><tbody>'+
+      DISPLAY_ORDER.map(function(id){var g=grp(id);return '<tr><td>'+E(g.name)+'</td><td>'+E(g.screw)+'</td><td>'+E(g.material)+'</td><td class="num">'+g.count+'</td><td>'+E(g.range)+'</td></tr>';}).join("")+
+      '</tbody></table></div>';}},
+    {t:"可制造性检查",roles:["research","sec"],k:"dfm",gate:{who:"研发",act:"确认调整布局"},
+     lead:"按规则库逐点检查批头可达空间、最小间距和拧入深度。只做有明确几何判据的检查，查不出来的不假装能查。",
+     html:function(){return D.dfm.issues.map(function(x){return '<div class="issue"><span class="ic">!</span><p><b>'+E(x.message)+'。</b>建议'+E(x.suggestion)+'。</p></div>';}).join("")+
+      '<div class="cards">'+card("ok","通过",D.dfm.points_passed,"个紧固点")+card(D.dfm.issues.length?"warn":"ok","问题",D.dfm.issues.length,dfmIssue?E(dfmIssue.point)+" 可达空间不足":"")+card("","检查规则",D.dfm.rules_checked,"条几何规则")+'</div>';}},
+    {t:"工艺规划",roles:["impl"],k:"process",gate:{who:"工艺工程师",act:"签字确认工艺窗口"},
+     lead:"实现 Worker 调用工艺模型。库里有的直接引用，库里没有的给出带置信度的推荐；超出范围的，模型明确回答不知道。",
+     html:function(){return '<div class="tbl"><table><thead><tr><th>组</th><th>窗口'+(D.example_data?"（示例）":"")+'</th><th>分段</th><th>来源</th><th>置信度</th></tr></thead><tbody>'+
+      DISPLAY_ORDER.map(function(id){var g=grp(id),s=SRC[g.status]||["no",g.status];return '<tr><td>'+E(g.name+" "+g.screw+" · "+g.material)+'</td><td class="num">'+nm(g.window_nm)+'</td><td>'+E(g.stages.join(" · "))+'</td><td><span class="pill '+s[0]+'">'+s[1]+'</span></td><td>'+(CONF[g.confidence]||E(g.confidence))+'</td></tr>';}).join("")+
+      (er?'<tr><td>对照：'+E(er.screw+" · "+er.material)+'</td><td>不知道</td><td>—</td><td><span class="pill no">超出范围</span></td><td>拒绝给数</td></tr>':'')+'</tbody></table></div>'+
+      '<p class="lead" style="margin:0">最后一行是故意演示的：模型没见过的组合，宁可说不知道，也不编一个看起来合理的数。</p>';}},
+    {t:"工站方案",roles:["impl","verify"],k:"compose",gate:{who:"项目负责人",act:"确认工站方案"},
+     lead:"从模块库组合工站，不做非标设计。每个模块有型号、参数区间和接口，组合结果直接生成工站的数字孪生，在孪生里摆放、检查可达性、跑节拍。",
+     html:function(){return moduleSvg()+'<div class="cards">'+card(tk.ok?"ok":"warn","预估节拍",f(tk.total_s,1)+" s",tk.points+" 点 × "+tk.per_point_s+" s + 上下料 "+tk.load_unload_s+" s；目标 "+tk.target_s+" s")+twinTakt()+card("","模块",D.compose.modules,"全部来自模块库")+card("hl","非标设计",0,"库内组合")+'</div>';}},
+    {t:"生成产出",roles:["impl","sec"],k:"generate",
+     lead:"Agent 写的是设备无关的业务流，再生成工站状态机和机械臂程序。机械臂程序里不出现扭矩和紧固逻辑。",
+     html:function(){var xyz=function(v){return "["+v.join(", ")+"]";};
+      return '<pre class="code"><span class="c"># station/flow.yaml（节选）</span>\n<span class="h">station</span>: '+E(gen.station_id)+'\n<span class="h">fixture</span>: '+E(gen.fixture)+'\n<span class="h">sequence</span>:\n  - point: '+E(d1.point)+'\n    approach: {frame: '+E(d1.approach.frame)+', xyz: '+xyz(d1.approach.xyz)+', rpy: '+xyz(d1.approach.rpy)+'}\n    engage:   {frame: '+E(d1.engage.frame)+', xyz: '+xyz(d1.engage.xyz)+'}\n    handoff: '+E(d1.handoff)+'              <span class="c"># 就绪 / 接管 / 完成 / 异常</span>\n    executor_params: '+E(d1.executor_params)+'\n    on_ng: ['+E(d1.on_ng.join(", "))+']</pre>'+
+      '<div class="files">'+gen.files.filter(function(x){return x.indexOf("params/")!==0;}).concat(["params/ "+gen.params+" 组参数包"]).map(function(x){return '<div class="file"><i class="dot"></i><span>'+E(x)+'</span></div>';}).join("")+'</div>'+
+      '<p class="lead" style="margin:0">决策记录 '+gen.decisions.length+' 条：'+E(gen.decisions.join("、"))+'，均为草稿，待人确认。</p>';}},
+    {t:"独立审查",roles:["review","impl"],k:"review",
+     lead:"审查 Worker 只看产出和规则，看不到生成过程。核对方不知道生成方的推理，核对才有意义。",
+     html:function(){var r=D.review;return '<div class="diff"><div class="b"><h4>审查发现</h4>'+r.found.map(function(x){return E(x.message);}).join("；")+'。</div><div class="a"><h4>修正后</h4>'+(r.fixed?"按审查意见重新生成文件，复核剩余 "+r.remaining.length+" 处不一致。":"未修正")+'</div></div>'+
+      '<div class="cards">'+card("warn","发现",r.found.length,"处，涉及 "+E(r.found.map(function(x){return x.point;}).filter(function(p,i,a){return a.indexOf(p)===i;}).join("、")))+card(r.remaining.length?"warn":"ok","修正后不一致",r.remaining.length)+'</div>';}},
+    {t:"测试验收",roles:["verify"],k:"verify",
+     lead:"Agent 说自己完成了不算数。测试由控制器在 Worker 停止后独立运行，全部通过才算验收。",
+     html:function(){
+      var why={feasibility:"模块都在库里，参数都在能力范围内",reach:D.points+" 个接近姿态都在工作空间内",takt:"估算 "+f(tk.total_s,1)+" s ≤ "+tk.target_s+" s",boundary:"机械臂程序中无扭矩逻辑，未改动 golden 约束",consistency:"每个点位都有参数包、指导书步骤和控制计划",erasure:"超出范围的组合返回未知",clearance:(function(c){if(!c)return "";var k=c.known_hits.map(function(h){return h.point+" 碰 "+h.obstacle;}).filter(function(x,i,a){return a.indexOf(x)===i;});return "工具沿程序扫过零件简化体："+(c.new_hits.length?"新干涉 "+c.new_hits.length+" 处":"无新干涉")+(k.length?"；"+k.join("、")+" 为 DFM 已记录、待布局修改":"");})(D.verify_clearance)};
+      var rows=Object.keys(D.verify).map(function(k){return [CHECK_CN[k]||k,why[k]||"",D.verify[k]];});
+      rows.splice(4,0,["状态机","正常、滑牙、浮高、超时、急停五条路径",true]);
+      rows.push(["数字孪生运行",tw?("C12 按 DFM 建议外移后，"+tw.points_arrived+"/"+tw.points_total+" 点到位，碰撞 "+tw.collisions+"，孔位误差 ≤ "+f(tw.hole_err_max_mm,3)+" mm，整件"+(tw.unit_result==="OK"?"合格":"不合格")):"未运行",!!(tw&&tw.twin_ok)]);
+      return '<div class="tests" id="tests">'+rows.map(function(x,i){return '<div class="test'+(x[2]?"":" fail")+'" data-i="'+i+'"><span class="st">'+(x[2]?"✓":"×")+'</span><span>'+E(x[0])+'</span><span class="why">'+E(x[1])+'</span></div>';}).join("")+'</div>';}},
+    {t:"首件验证",roles:["verify","pm"],k:"fai",gate:{who:"质量",act:"首件放行"},
+     lead:"首件 "+D.fai.total+" 颗螺钉的曲线由判定模型逐颗判定。驱动板这组用的是模型推荐窗口，看首件是否收敛在窗口内。",
+     html:function(){var dr=D.fai.d_final_nm;return curveSvg()+'<div class="cards">'+card(D.fai.ok===D.fai.total?"ok":"warn","合格",D.fai.ok+" / "+D.fai.total)+card("","D 组终止扭矩",dr[0]===dr[1]?f(dr[0],3):f(dr[0],3)+"–"+f(dr[1],3),"N·m，窗口 "+nm(grp("D").window_nm))+card("","判定依据","曲线","不只看终值")+'</div>';}},
+    {t:"设计变更",roles:["pm","impl","review"],
+     lead:ecn?"研发提交 "+ecn.id+"："+ecn.title+"。Agent 算出影响范围：只动受影响的 "+ecn.affected.length+" 个点，其余 "+ecn.unaffected.length+" 个点保持不变。":"没有设计变更记录。",
+     log:ecn?[["PM","收到变更 "+ecn.id+"："+ecn.title],["实现","重推 "+ecn.affected[0]+"–"+ecn.affected[ecn.affected.length-1]+" 工艺窗口："+nm(ecn.window_nm)+"（"+(SRC[ecn.status]||["",ecn.status])[1]+"，置信度 "+(CONF[ecn.confidence]||ecn.confidence)+"）"],["审查","影响清单：需更新 "+ecn.files+" 个文件位置"],["PM","需重新首件："+ecn.refai.join("、")]]:[],
+     html:function(){if(!ecn)return "";
+      return '<div class="chips">'+D.point_ids.map(function(p){return '<span class="chip '+(ecn.affected.indexOf(p)>=0?"hit":"ok")+'">'+p+'</span>';}).join("")+'</div>'+
+      '<div class="cards">'+card("warn","受影响",ecn.affected.length,E(ecn.affected.join("、")))+card("ok","不受影响",ecn.unaffected.length,"无需重做")+card("","需更新文件",ecn.files,"参数包、指导书、控制计划")+card("hl","重新首件",ecn.refai.length+" 点","不是整站")+'</div>'+
+      '<p class="lead" style="margin:0">换型和设计变更不再需要人重新走一遍流程，只重做真正受影响的部分。</p>';}}
+  ];
+  // 运行日志取自 build/station/run_log.txt；关口行换成「等待签字」，签字在演示里现场点
+  STEPS.forEach(function(s,i){
+    var lines=s.log||(D.log[s.k]||[]).filter(function(x){return !(x[0]==="PM"&&x[1].indexOf("关口")===0);});
+    if(s.gate)lines=lines.concat([["PM","关口：等待"+s.gate.who+"签字"]]);
+    s.log=lines.map(function(x){return "<b>"+E(x[0])+"</b> "+E(x[1]);});
+  });
+
+  var cur=0, timers=[];
+  var $=function(id){return document.getElementById(id);};
+  var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function clearT(){timers.forEach(clearTimeout);timers=[];}
+  function later(fn,ms){timers.push(setTimeout(fn,reduce?0:ms));}
+
+  function renderRail(){
+    $("rail").innerHTML=STEPS.map(function(s,i){
+      var cls=(i===cur?"on ":"")+(i<cur?"done ":"")+(s.gate&&signed[i]?"signed":"");
+      return '<li><button type="button" class="'+cls+'" data-i="'+i+'" aria-current="'+(i===cur?"step":"false")+'"><span class="n">'+(i<cur?"✓":(i+1))+'</span>'+s.t+(s.gate?'<span class="gate">'+(signed[i]?"已签":"签字")+'</span>':'')+'</button></li>';
+    }).join("");
+    Array.prototype.forEach.call($("rail").querySelectorAll("button"),function(b){b.addEventListener("click",function(){go(+b.getAttribute("data-i"));});});
+  }
+  function renderTeam(s){
+    $("team").innerHTML=ROLES.map(function(r){return '<span class="agent'+(s.roles.indexOf(r[0])>=0?" on":"")+'"><i></i>'+r[1]+'</span>';}).join("");
+  }
+  function renderGate(i){
+    var s=STEPS[i], g=$("gate");
+    if(!s.gate){g.innerHTML="";return;}
+    if(signed[i]){g.innerHTML='<div class="signbox signed">✓ 已签字 · '+E(s.gate.who)+'</div>';return;}
+    g.innerHTML='<div class="signbox">关口：'+E(s.gate.who)+'<button class="btn ok" type="button" id="sign">'+E(s.gate.act)+'</button></div>';
+    $("sign").addEventListener("click",function(){signed[i]=true;renderGate(i);renderRail();updateNav();});
+  }
+  function updateNav(){
+    var s=STEPS[cur];
+    $("prev").disabled=cur===0;
+    var blocked=!!(s.gate&&!signed[cur]);
+    $("next").disabled=cur===STEPS.length-1||blocked;
+    $("next").textContent=cur===STEPS.length-1?"演示结束":(blocked?"等待签字":"下一步");
+    $("navc").textContent="第 "+(cur+1)+" 步，共 "+STEPS.length+" 步";
+  }
+  function go(i){
+    if(i<0||i>=STEPS.length)return;
+    clearT(); cur=i; var s=STEPS[i];
+    renderRail(); renderTeam(s);
+    $("view").innerHTML='<div class="fade"><h2>'+E(s.t)+'</h2><p class="lead">'+E(s.lead)+'</p>'+s.html.call(s)+'</div>';
+    $("log").innerHTML="";
+    s.log.forEach(function(line,k){later(function(){var d=document.createElement("div");d.innerHTML=line;$("log").appendChild(d);},350+k*420);});
+    if(s.tests){ Array.prototype.forEach.call(document.querySelectorAll("#tests .test"),function(el,k){if(!el.classList.contains("fail"))later(function(){el.classList.add("pass");},500+k*320);}); }
+    renderGate(i); updateNav();
+  }
+  $("prev").addEventListener("click",function(){go(cur-1);});
+  $("next").addEventListener("click",function(){if(!$("next").disabled)go(cur+1);});
+  $("go").addEventListener("click",function(){go(0);$("demo").scrollIntoView({behavior:reduce?"auto":"smooth",block:"start"});});
+  document.addEventListener("keydown",function(e){
+    if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))return;
+    if(e.key==="ArrowRight"&&!$("next").disabled)go(cur+1);
+    if(e.key==="ArrowLeft"&&cur>0)go(cur-1);
+  });
+  $("fine").textContent=(D.source==="build"?"页面数值取自本次运行（流水线 "+D.generated.replace("T"," ")+(D.twin?"，孪生 "+D.twin.generated.replace("T"," "):"")+"）。":"页面数值是 "+D.generated.replace("T"," ")+" 运行结果的快照；重新生成：python -m jsdemo.presenter。")+
+    (D.example_data?"产品与工艺为示例数据，扭矩和节拍数值不构成工艺推荐。":"")+"机械臂与输送段在工站的数字孪生中运行。";
+
+  // 线体看板回放（用户 2026-10-26）：状态由网关事件推出，规则与孪生 kanban_state 相同
+  (function(){
+    var L=D.line; if(!L)return;
+    $("kb").hidden=false;
+    $("kb-lead").textContent="三台连续装配：上一台拧紧时下一盘配件已在排队，成品依次送进下游缓存。数据来自孪生运行（"+L.report+"），合计 "+L.total_s+" s。";
+    var tmax=Math.ceil(L.events[L.events.length-1].t_s+2), sl=$("kb-slider"); sl.max=tmax;
+    function state(t){
+      var u={},sn={};
+      L.units.forEach(function(x){u[x.unit]={sn:x.sn,state:"等待",points:0,ng:0,start:null,result:null};});
+      L.events.forEach(function(e){
+        if(e.t_s>t)return;
+        if(e.event==="unit_start"){u[e.unit].state="装配中";u[e.unit].start=e.t_s;sn[e.sn]=e.unit;}
+        else if(!e.event&&e.point&&sn[e.sn]){var x=u[sn[e.sn]];x.points++;if(e.result!=="OK")x.ng++;}
+        else if(e.event==="unit_unloaded")u[e.unit].state="下线中";
+        else if(e.event==="unit_result")u[e.unit].result=e.result;
+        else if(e.event==="unit_delivered")u[e.unit].state="已送达下游"+(u[e.unit].result==="OK"?"（合格）":"（不合格）");
+      });
+      return u;
+    }
+    function render(t){
+      var u=state(t),del=0,ok=0,done=0,starts=[];
+      var rows=Object.keys(u).map(function(k){var x=u[k];
+        if(x.state.indexOf("已送达")===0)del++; if(x.result){done++;if(x.result==="OK")ok++;} if(x.start!==null)starts.push(x.start);
+        var col=x.state==="装配中"?"#ffc83c":x.state==="下线中"?"#78c8ff":x.state.indexOf("（合格）")>0?"#5adc78":x.state==="等待"?"#96a0af":"#ff5a5a";
+        return '<div class="kb-row"><span>'+E(x.sn)+'</span><span class="kb-st" style="color:'+col+'">'+E(x.state)+'</span><span>'+x.points+'/'+L.points_total+(x.ng?'  NG '+x.ng:'')+'</span></div>';});
+      $("kb-rows").innerHTML=rows.join("");
+      $("kb-del").textContent=del; $("kb-yield").textContent=done?Math.round(100*ok/done)+"%":"—";
+      $("kb-int").textContent=starts.length>1?((starts[starts.length-1]-starts[0])/(starts.length-1)).toFixed(1)+" s":"—";
+      $("kb-t").textContent=Math.round(t)+" s";
+    }
+    var timer=null;
+    $("kb-play").addEventListener("click",function(){
+      if(timer){clearInterval(timer);timer=null;$("kb-play").textContent="播放";return;}
+      if(+sl.value>=tmax)sl.value=0;
+      $("kb-play").textContent="暂停";
+      timer=setInterval(function(){sl.value=Math.min(tmax,+sl.value+4);render(+sl.value);if(+sl.value>=tmax){clearInterval(timer);timer=null;$("kb-play").textContent="播放";}},100);
+    });
+    sl.addEventListener("input",function(){render(+sl.value);});
+    render(tmax);sl.value=tmax;
+  })();
+  go(0);
+})();
+</script>
+
+</body>
+</html>

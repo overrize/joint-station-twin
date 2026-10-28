@@ -1,0 +1,38 @@
+example_data: true
+id: FD-3L
+type: feeder
+name: 三通道供钉器
+lanes: 3
+screw_d_range_mm: [1.6, 4.0]
+# 独立小型机器：每路一种螺钉。M3.1b 时为吹气送到批头；用户 2026-10-25 改为每路出钉口末端一个竖直出钉位，
+# 拧紧臂每颗螺钉去出钉位用批头真空吸取（DEC-FEED-001）。出钉位几何见下方 geometry（demo 占位）
+feed_method: nest_pick
+# 外形（模块自身坐标系：原点在机身中心，出钉口朝 -y，机身底面在安装面上）。工站设计只给位姿，外形取这里
+geometry:
+  source: demo_placeholder
+  size_mm: [180.0, 110.0, 60.0]
+  lane_pitch_mm: 55.0        # 各路沿 x 排列的间距
+  outlet_len_mm: 30.0        # 出钉口长度
+  nest_size_mm: [18.0, 18.0, 60.0]   # 出钉位：从桌面立起的小块，顶面与机身顶面齐平
+# 通道分配规则：第 i 路 = station.checks.screw_kinds 的第 i 种，不另写对应表
+lane_assignment: by_screw_kinds_order
+lane_capacity_pcs: 50   # 演示用数值（用户 2026-10-24 指定），非实测
+# 对外数据点，经网关 GW-1 转发给 MES；协议待客户确定，当前为旁路模式（网关本地存储）
+mes:
+  via: GW-1
+  protocol: 缺失
+  points:
+    - {name: state, type: enum, values: [idle, feeding, fault]}
+    - {name: lane_screw, type: string, per_lane: true}      # 该路螺钉型号
+    - {name: lane_level_pct, type: float, unit: "%", per_lane: true}
+    - {name: lane_empty, type: bool, per_lane: true}
+    - {name: lane_jam, type: bool, per_lane: true}
+    - {name: feed_count, type: int, per_lane: true}
+    - {name: feed_done, type: event, per_lane: true}        # 一颗钉送到批头
+io:
+  source: demo_placeholder
+  signals:
+    - {name: present_lane, dir: in, type: int, desc: 请求第几路把螺钉送到出钉位}
+    - {name: nest_ready, dir: out, type: bool, per_lane: true, desc: 出钉位上有螺钉}
+    - {name: lane_empty, dir: out, type: bool, per_lane: true, desc: 料道空}
+    - {name: jam, dir: out, type: bool, desc: 卡料}

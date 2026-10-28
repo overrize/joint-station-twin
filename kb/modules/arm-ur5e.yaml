@@ -1,0 +1,18 @@
+example_data: true
+id: ARM-UR5E
+type: arm
+name: 协作臂 UR5e（第三方载体）
+reach_mm: 850
+min_reach_mm: 150
+payload_kg: 5.0
+repeatability_mm: 0.03
+absolute_accuracy_mm: 0.8
+move_s_avg: 1.2
+interfaces: [tier0, tier1]
+isaac_asset: /Isaac/Robots/UniversalRobots/ur5e/ur5e.usd  # 相对资产库根路径，本机 6.2 核实
+local_asset: ur5e.usd   # sim/isaac/fetch_assets.py 合成到 build/assets/（有就优先用）
+isaac_ik: {stack: lula, robot: UR5e, frame: tool0}  # DEC-ARM-001
+# 控制器能力（生成器分配 I/O 用）：标准数字量、工具数字量、整数寄存器
+io:
+  source: demo_placeholder
+  capacity: {digital_in: 8, digital_out: 8, tool_digital_out: 2, int_register_in: 24, int_register_out: 24}

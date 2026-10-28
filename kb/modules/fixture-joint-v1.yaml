@@ -1,0 +1,13 @@
+example_data: true
+id: FX-JOINT-V1
+type: fixture
+name: 关节模组定位治具
+product: joint-v1
+placement_tolerance_mm: 0.05
+# 三个基准特征，用于现场自标定（治具坐标系，mm）
+datums:
+  - {id: DT1, xyz: [-50.0, -50.0, 0.0]}
+  - {id: DT2, xyz: [50.0, -50.0, 0.0]}
+  - {id: DT3, xyz: [-50.0, 50.0, 0.0]}
+# 治具坐标系在机械臂基座坐标系中的名义位姿
+nominal_pose_in_base: {xyz_mm: [450.0, 0.0, 0.0], yaw_deg: 0.0}

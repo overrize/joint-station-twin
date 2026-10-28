@@ -1,0 +1,10 @@
+example_data: true
+id: TR-KT6
+type: tray
+name: 配套料盘（6 穴，随输送线进出）
+slots: 6
+slot_grid: [2, 3]           # x 方向 2 列 × y 方向 3 行
+slot_pitch_mm: [110.0, 110.0]
+slot_max_diameter_mm: 100.0
+size_mm: [230.0, 340.0, 12.0]
+travel_s: 2.0               # 从入口送到放件位的时间（demo 占位）

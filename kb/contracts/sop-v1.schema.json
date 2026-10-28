@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "jsdemo.sop/1",
+  "title": "工站 SOP v1（上游 agent 输出）",
+  "description": "结构校验用。语义校验（工步顺序、点位落在零件顶面、接近通道、工艺库匹配、来源与签字）由 jsdemo.sop 完成，见 docs/06-sop-contract.md。任何值不知道时写字符串 \"缺失\"，不要编造。",
+  "type": "object",
+  "required": ["schema", "meta", "units", "frame", "takt_target_s", "parts", "screws", "steps", "open_items"],
+  "properties": {
+    "schema": {"const": "jsdemo.sop/1"},
+    "example_data": {"type": "boolean"},
+    "meta": {
+      "type": "object",
+      "required": ["product", "name", "revision", "generated_by", "status"],
+      "properties": {
+        "product": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$"},
+        "name": {"type": "string"},
+        "revision": {"type": "string"},
+        "station": {"type": "string"},
+        "generated_by": {
+          "type": "object",
+          "required": ["agent", "version", "at"],
+          "properties": {"agent": {"type": "string"}, "version": {"type": "string"}, "at": {"type": "string"}}
+        },
+        "status": {"enum": ["draft", "signed"]},
+        "signed_by": {"type": ["string", "null"]}
+      }
+    },
+    "units": {
+      "type": "object",
+      "required": ["length", "angle", "time"],
+      "properties": {"length": {"const": "mm"}, "angle": {"const": "deg"}, "time": {"const": "s"}}
+    },
+    "frame": {
+      "type": "object",
+      "required": ["description", "mounting_in_fixture"],
+      "properties": {
+        "description": {"type": "string"},
+        "mounting_in_fixture": {
+          "type": "object",
+          "required": ["fixture", "xyz", "rpy", "source"],
+          "properties": {
+            "fixture": {"type": "string"},
+            "xyz": {"$ref": "#/$defs/vec3"},
+            "rpy": {"$ref": "#/$defs/vec3"},
+            "source": {"$ref": "#/$defs/source"}
+          }
+        }
+      }
+    },
+    "takt_target_s": {
+      "type": "object",
+      "required": ["value", "source"],
+      "properties": {"value": {"$ref": "#/$defs/numOrMissing"}, "source": {"$ref": "#/$defs/source"}}
+    },
+    "parts": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/part"}},
+    "screws": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "required": ["id"],
+        "properties": {
+          "id": {"type": "string", "description": "必须是 process/library 里的型号，形如 M3x8-machine"},
+          "bom_id": {"type": "string"}, "name": {"type": "string"},
+          "head": {"type": "object", "properties": {"d": {"$ref": "#/$defs/numOrMissing"}, "h": {"$ref": "#/$defs/numOrMissing"},
+                   "drive": {"type": "string"}, "source": {"$ref": "#/$defs/source"}}}
+        }
+      }
+    },
+    "ctq": {
+      "type": "array",
+      "items": {"type": "object", "required": ["id", "name"], "properties": {"id": {"type": "string"}, "name": {"type": "string"}}}
+    },
+    "steps": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/step"}},
+    "open_items": {
+      "type": "array",
+      "items": {"type": "object", "required": ["id", "text"],
+                "properties": {"id": {"type": "string"}, "about": {"type": "string"}, "text": {"type": "string"}}}
+    }
+  },
+  "$defs": {
+    "missing": {"const": "缺失"},
+    "numOrMissing": {"oneOf": [{"type": "number"}, {"$ref": "#/$defs/missing"}]},
+    "vec3": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+    "vec2": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+    "source": {"enum": ["drawing", "cad", "measured", "experiment", "customer", "supplier", "estimate", "placeholder", "example", "缺失"]},
+    "pose": {"type": "object", "required": ["xyz", "rpy"], "properties": {"xyz": {"$ref": "#/$defs/vec3"}, "rpy": {"$ref": "#/$defs/vec3"}}},
+    "shape": {
+      "type": "object", "required": ["type"],
+      "oneOf": [
+        {"properties": {"type": {"const": "cylinder"}, "r": {"type": "number", "exclusiveMinimum": 0}, "xy": {"$ref": "#/$defs/vec2"},
+                        "z": {"$ref": "#/$defs/vec2"}}, "required": ["type", "r", "z"]},
+        {"properties": {"type": {"const": "ring"}, "r_in": {"type": "number", "exclusiveMinimum": 0}, "r_out": {"type": "number", "exclusiveMinimum": 0},
+                        "xy": {"$ref": "#/$defs/vec2"}, "z": {"$ref": "#/$defs/vec2"}}, "required": ["type", "r_in", "r_out", "z"]},
+        {"properties": {"type": {"const": "box"}, "center": {"$ref": "#/$defs/vec3"}, "size": {"$ref": "#/$defs/vec3"}, "yaw": {"type": "number"}},
+         "required": ["type", "center", "size"]}
+      ]
+    },
+    "part": {
+      "type": "object", "required": ["id", "name", "material", "pose", "geometry"],
+      "properties": {
+        "id": {"type": "string"}, "name": {"type": "string"}, "material": {"type": "string"}, "note": {"type": "string"},
+        "pose": {"$ref": "#/$defs/pose"},
+        "geometry": {
+          "type": "object", "required": ["source", "shapes"],
+          "properties": {
+            "source": {"$ref": "#/$defs/source"},
+            "shapes": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/shape"}},
+            "mesh": {"type": ["object", "null"], "properties": {"file": {"type": "string"}, "format": {"enum": ["usd", "step", "stl", "obj"]},
+                     "units": {"const": "mm"}, "note": {"type": "string"}}}
+          }
+        },
+        "components": {
+          "type": "array",
+          "items": {"type": "object", "required": ["id", "name", "shape", "source"],
+                    "properties": {"id": {"type": "string"}, "name": {"type": "string"}, "shape": {"$ref": "#/$defs/shape"},
+                                   "source": {"$ref": "#/$defs/source"}, "note": {"type": "string"}}}
+        }
+      }
+    },
+    "step": {
+      "type": "object", "required": ["id", "type", "actor"],
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"enum": ["place", "fasten", "inspect"]},
+        "actor": {"enum": ["operator", "robot", "executor", "upstream", "缺失"]}
+      },
+      "allOf": [
+        {"if": {"properties": {"type": {"const": "place"}}},
+         "then": {"required": ["part", "duration_s"], "properties": {"part": {"type": "string"}, "duration_s": {"$ref": "#/$defs/numOrMissing"}}}},
+        {"if": {"properties": {"type": {"const": "fasten"}}},
+         "then": {
+           "required": ["group", "name", "fastens", "into", "screw", "hole", "approach", "on_ng", "points"],
+           "properties": {
+             "group": {"type": "string"}, "name": {"type": "string"}, "fastens": {"type": "string"}, "into": {"type": "string"},
+             "screw": {"type": "string"},
+             "hole": {"type": "object", "required": ["material", "depth_mm", "source"],
+                      "anyOf": [{"required": ["spec"]}, {"required": ["d_mm"]}],
+                      "properties": {"material": {"type": "string"}, "spec": {"type": "string"}, "d_mm": {"$ref": "#/$defs/numOrMissing"},
+                                     "depth_mm": {"$ref": "#/$defs/numOrMissing"}, "source": {"$ref": "#/$defs/source"}}},
+             "approach": {"$ref": "#/$defs/vec3"},
+             "on_ng": {"type": "object", "required": ["action"],
+                       "properties": {"action": {"enum": ["continue", "stop_unit"]},
+                                      "retry": {"type": "object", "required": ["max", "on_modes", "decision"],
+                                                "properties": {"max": {"type": "integer", "minimum": 1},
+                                                               "on_modes": {"type": "array", "items": {"enum": ["float", "slip", "under", "over"]}},
+                                                               "decision": {"type": "string"}}}}},
+             "ctq": {"type": "array", "items": {"type": "string"}},
+             "points": {"type": "array", "minItems": 1,
+                        "items": {"type": "object", "required": ["id", "xyz"],
+                                  "properties": {"id": {"type": "string"}, "xyz": {"$ref": "#/$defs/vec3"},
+                                                 "ctq": {"type": "array", "items": {"type": "string"}}}}}
+           }
+         }}
+      ]
+    }
+  }
+}

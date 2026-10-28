@@ -1,0 +1,5 @@
+# 示例设计变更：驱动板支架材料 PA66 → PC
+id: ECN-001
+title: 驱动板支架改用 PC
+changes:
+  - {target: group, id: D, field: material, from: PA66, to: PC}

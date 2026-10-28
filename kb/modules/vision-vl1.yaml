@@ -1,0 +1,6 @@
+example_data: true
+id: VL-1
+type: vision_locator
+name: 视觉找正（可选，误差预算不满足时才加）
+residual_mm: 0.1
+extra_s_per_point: 0.4

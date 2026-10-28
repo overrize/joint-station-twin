@@ -1,0 +1,3 @@
+* text=auto eol=lf
+*.usd binary
+*.usda text eol=lf
